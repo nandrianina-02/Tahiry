@@ -17,7 +17,8 @@ const FicheSchema = new mongoose.Schema({
   data:  { type: mongoose.Schema.Types.Mixed, default: {} }, // { field: valeur, ... }
   // Identifiant généré côté client au moment de l'entretien (avant même l'envoi au serveur).
   // Permet de synchroniser sans créer de doublon si une fiche créée hors-ligne est renvoyée deux fois.
-  clientId: { type: String, default: null, index: true, sparse: true, unique: true }
+  // Pas de valeur par défaut null : l'index sparse n'ignore que les documents où le champ est ABSENT.
+  clientId: { type: String, sparse: true, unique: true }
 }, { timestamps: true });
 
 module.exports = mongoose.model('Fiche', FicheSchema);

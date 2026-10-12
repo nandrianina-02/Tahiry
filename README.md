@@ -28,15 +28,7 @@ cp .env.example .env
 npm start
 ```
 
-Puis place le fichier `index.html` (fourni séparément) dans un dossier `public/`
-à la racine de ce projet :
-
-```bash
-mkdir -p public
-cp /chemin/vers/index.html public/index.html
-```
-
-Ouvre ensuite `http://localhost:3000` — le frontend et l'API sont servis par le
+Le frontend (`public/index.html`) est inclus dans le dépôt. Ouvre ensuite `http://localhost:3000` — le frontend et l'API sont servis par le
 même serveur (même origine), donc pas de souci de cookies/CORS.
 
 ## Déploiement sur Vercel
@@ -215,6 +207,8 @@ connecté ; chaque utilisateur ne voit que ses propres questionnaires et répons
 s'activer — c'est automatique sur Vercel et Render, et déjà le cas en local.
 Les icônes sont dans `public/icons/` et le manifeste dans `public/manifest.json`
 si tu veux les personnaliser.
-#   T a h i r y  
- #   T a h i r y  
+#   T a h i r y 
+ 
+ #   T a h i r y 
+ 
  

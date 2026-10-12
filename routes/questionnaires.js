@@ -1,7 +1,9 @@
 const express = require('express');
+const mongoose = require('mongoose');
 const Questionnaire = require('../models/Questionnaire');
 const Fiche = require('../models/Fiche');
 const { requireAuth } = require('../middleware/auth');
+const wrap = require('../lib/asyncHandler');
 
 const router = express.Router();
 router.use(requireAuth);
@@ -42,12 +44,18 @@ function sanitizeQuestions(questions) {
 }
 
 // GET /api/questionnaires  → liste des questionnaires de l'utilisateur connecté
-router.get('/', async (req, res) => {
+router.get('/', wrap(async (req, res) => {
   const list = await Questionnaire.find({ owner: req.userId })
     .select('title description createdAt updatedAt questions')
     .sort({ updatedAt: -1 });
-  const withCounts = await Promise.all(list.map(async (q) => {
-    const count = await Fiche.countDocuments({ questionnaire: q._id, owner: req.userId });
+  // Un seul comptage groupé au lieu d'une requête par questionnaire (N+1).
+  const counts = await Fiche.aggregate([
+    { $match: { owner: new mongoose.Types.ObjectId(req.userId) } }, // aggregate() ne caste pas les types
+    { $group: { _id: '$questionnaire', n: { $sum: 1 } } }
+  ]);
+  const countById = new Map(counts.map(c => [String(c._id), c.n]));
+  const withCounts = list.map((q) => {
+    const count = countById.get(String(q._id)) || 0;
     return {
       _id: q._id,
       title: q.title,
@@ -57,9 +65,9 @@ router.get('/', async (req, res) => {
       nbQuestions: q.questions.length,
       nbReponses: count
     };
-  }));
+  });
   res.json(withCounts);
-});
+}));
 
 // POST /api/questionnaires  → créer un nouveau questionnaire (vide ou avec questions)
 router.post('/', async (req, res) => {
@@ -82,11 +90,11 @@ router.post('/', async (req, res) => {
 });
 
 // GET /api/questionnaires/:id  → détail (avec questions) — vérifie que c'est le propriétaire
-router.get('/:id', async (req, res) => {
+router.get('/:id', wrap(async (req, res) => {
   const q = await Questionnaire.findOne({ _id: req.params.id, owner: req.userId });
   if (!q) return res.status(404).json({ error: 'Questionnaire introuvable.' });
   res.json(q);
-});
+}));
 
 // POST /api/questionnaires/:id/duplicate  → duplique un questionnaire (structure des questions uniquement, pas les réponses)
 router.post('/:id/duplicate', async (req, res) => {
@@ -126,12 +134,12 @@ router.put('/:id', async (req, res) => {
 });
 
 // DELETE /api/questionnaires/:id  → supprime le questionnaire ET ses réponses
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', wrap(async (req, res) => {
   const q = await Questionnaire.findOne({ _id: req.params.id, owner: req.userId });
   if (!q) return res.status(404).json({ error: 'Questionnaire introuvable.' });
   await Fiche.deleteMany({ questionnaire: q._id, owner: req.userId });
   await q.deleteOne();
   res.json({ ok: true });
-});
+}));
 
 module.exports = router;

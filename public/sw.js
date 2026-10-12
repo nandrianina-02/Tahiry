@@ -8,7 +8,7 @@
 // arrière-plan. Les requêtes vers /api/* ne sont JAMAIS mises en cache : les données
 // doivent toujours être fraîches (ou gérées par la logique hors-ligne dédiée du frontend).
 
-const CACHE_NAME = 'tahiry-shell-v1';
+const CACHE_NAME = 'tahiry-shell-v2';
 const SHELL_FILES = [
   '/',
   '/index.html',
@@ -48,6 +48,23 @@ self.addEventListener('fetch', (event) => {
   // Autres domaines (CDN Chart.js, polices Google, etc.) : on laisse passer normalement,
   // sans les mettre en cache ici (évite de gonfler le cache avec des librairies tierces).
   if (url.origin !== self.location.origin) return;
+
+  // Page HTML : réseau d'abord (une nouvelle version déployée s'affiche immédiatement),
+  // cache en secours quand on est hors-ligne.
+  if (request.mode === 'navigate') {
+    event.respondWith(
+      fetch(request)
+        .then((response) => {
+          if (response && response.status === 200) {
+            const clone = response.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put('/index.html', clone));
+          }
+          return response;
+        })
+        .catch(() => caches.match(request).then((cached) => cached || caches.match('/index.html')))
+    );
+    return;
+  }
 
   event.respondWith(
     caches.match(request).then((cached) => {

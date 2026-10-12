@@ -5,6 +5,7 @@ const crypto = require('crypto');
 const User = require('../models/User');
 const { requireAuth } = require('../middleware/auth');
 const mailer = require('../lib/mailer');
+const wrap = require('../lib/asyncHandler');
 
 const router = express.Router();
 
@@ -29,6 +30,10 @@ function rateLimitByIp(bucket, max, windowMs) {
   return (req, res, next) => {
     const key = bucket + ':' + (req.ip || req.headers['x-forwarded-for'] || 'unknown');
     const now = Date.now();
+    // purge des entrées expirées pour éviter que la Map grossisse indéfiniment
+    if (attemptsByIp.size > 5000) {
+      for (const [k, v] of attemptsByIp) if (now > v.resetAt) attemptsByIp.delete(k);
+    }
     const entry = attemptsByIp.get(key) || { count: 0, resetAt: now + windowMs };
     if (now > entry.resetAt) { entry.count = 0; entry.resetAt = now + windowMs; }
     entry.count += 1;
@@ -113,11 +118,12 @@ router.post('/logout', (req, res) => {
 });
 
 // GET /api/auth/me
-router.get('/me', requireAuth, async (req, res) => {
+router.get('/me', requireAuth, wrap(async (req, res) => {
   const user = await User.findById(req.userId).select('email name createdAt');
-  if (!user) return res.status(404).json({ error: 'Utilisateur introuvable.' });
+  // 401 (et non 404) : le compte n'existe plus, le frontend doit revenir à l'écran de connexion
+  if (!user) return res.status(401).json({ error: 'Session invalide.' });
   res.json(user);
-});
+}));
 
 // POST /api/auth/forgot-password  → génère un lien de réinitialisation et l'envoie par email
 router.post('/forgot-password', rateLimitByIp('forgot', 8, 10 * 60 * 1000), async (req, res) => {

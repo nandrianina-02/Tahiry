@@ -2,43 +2,80 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="description" content="Tahiry — créez des questionnaires personnalisables, menez vos entretiens (même hors-ligne) et analysez vos réponses.">
-<meta name="theme-color" content="#4f46e5">
+<meta name="theme-color" content="#4f46e5" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0b1020" media="(prefers-color-scheme: dark)">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Crect x='1.5' y='1.5' width='37' height='37' rx='11' fill='%234f46e5'/%3E%3Ccircle cx='14' cy='15' r='5.4' fill='white'/%3E%3Ccircle cx='23' cy='10.5' r='6.6' fill='white'/%3E%3Ccircle cx='29.5' cy='16.5' r='4.8' fill='white'/%3E%3Cpath d='M21 20 V31' stroke='white' stroke-width='2.6' stroke-linecap='round'/%3E%3Cpath d='M21 26 L16.5 30 M21 24 L26 28.5' stroke='white' stroke-width='2.2' stroke-linecap='round'/%3E%3C/svg%3E">
 <link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192.png">
 <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
 <link rel="manifest" href="/manifest.json">
 <title>Tahiry — Questionnaires & entretiens</title>
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/jspdf@2/dist/jspdf.umd.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3/dist/jspdf.plugin.autotable.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&family=DM+Mono:wght@400;500&display=swap');
-  :root {
-    --accent:#4f46e5;--accent2:#0ea5e9;--success:#10b981;
-    --warning:#f59e0b;--danger:#ef4444;--surface:#ffffff;--bg:#f0f0f5;
-    --border:#e5e7eb;--text:#111827;--muted:#6b7280;--radius:12px;
-    --shadow:0 1px 3px rgba(0,0,0,.08),0 4px 12px rgba(0,0,0,.06);
-    --tap:48px;
+  /* ═════════════════════════════════════════════
+     DESIGN TOKENS (clair / sombre)
+     ═════════════════════════════════════════════ */
+  :root{
+    --bg:#f5f6fa; --surface:#ffffff; --surface-2:#f8f9fc; --surface-hover:#f1f3f9;
+    --border:#e4e7ef; --border-strong:#cfd5e2;
+    --text:#0f172a; --text-2:#334155; --muted:#64748b; --subtle:#94a3b8;
+    --accent:#4f46e5; --accent-hover:#4338ca; --accent-soft:#eef2ff; --accent-soft-2:#e0e7ff; --accent-text:#4338ca;
+    --translate:#7c3aed;
+    --success:#059669; --success-soft:#ecfdf5; --success-border:#a7f3d0; --success-text:#065f46;
+    --warning:#d97706; --warning-soft:#fffbeb; --warning-border:#fde68a; --warning-text:#92400e;
+    --danger:#dc2626; --danger-soft:#fef2f2; --danger-border:#fecaca; --danger-text:#991b1b;
+    --info-soft:#eff6ff; --info-border:#bfdbfe; --info-text:#1e40af;
+    --skeleton:#eceff5; --skeleton-shine:#f6f7fb;
+    --overlay:rgba(15,23,42,.45);
+    --radius-sm:8px; --radius:12px; --radius-lg:16px; --radius-xl:20px;
+    --shadow-xs:0 1px 2px rgba(15,23,42,.05);
+    --shadow-sm:0 1px 3px rgba(15,23,42,.06),0 1px 2px rgba(15,23,42,.04);
+    --shadow-md:0 6px 16px -4px rgba(15,23,42,.10),0 2px 6px -2px rgba(15,23,42,.05);
+    --shadow-lg:0 24px 48px -12px rgba(15,23,42,.28);
+    --ring:0 0 0 4px rgba(79,70,229,.16);
+    --ease:cubic-bezier(.2,.8,.2,1);
+    --tap:46px; --sidebar-w:264px; --bottom-nav-h:64px;
+    color-scheme:light;
   }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#0b1020; --surface:#121a2b; --surface-2:#0f1626; --surface-hover:#18223a;
+      --border:#1f2a40; --border-strong:#2c3a55;
+      --text:#e7ebf3; --text-2:#c4cbd8; --muted:#8e9ab0; --subtle:#5f6b82;
+      --accent:#6366f1; --accent-hover:#818cf8; --accent-soft:rgba(99,102,241,.14); --accent-soft-2:rgba(99,102,241,.24); --accent-text:#a5b4fc;
+      --translate:#c4b5fd;
+      --success:#10b981; --success-soft:rgba(16,185,129,.12); --success-border:rgba(16,185,129,.35); --success-text:#6ee7b7;
+      --warning:#f59e0b; --warning-soft:rgba(245,158,11,.12); --warning-border:rgba(245,158,11,.35); --warning-text:#fcd34d;
+      --danger:#f87171; --danger-soft:rgba(248,113,113,.12); --danger-border:rgba(248,113,113,.35); --danger-text:#fca5a5;
+      --info-soft:rgba(99,102,241,.12); --info-border:rgba(99,102,241,.35); --info-text:#c7d2fe;
+      --skeleton:#18223a; --skeleton-shine:#1f2b46;
+      --overlay:rgba(2,6,23,.7);
+      --shadow-sm:0 1px 2px rgba(0,0,0,.4);
+      --shadow-md:0 8px 20px -6px rgba(0,0,0,.5);
+      --shadow-lg:0 24px 48px -12px rgba(0,0,0,.7);
+      --ring:0 0 0 4px rgba(99,102,241,.28);
+      color-scheme:dark;
+    }
+  }
+
+  /* ═════════════════════════════════════════════
+     BASE
+     ═════════════════════════════════════════════ */
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html{scroll-behavior:smooth;}
-  body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);font-size:15px;line-height:1.6;-webkit-text-size-adjust:100%;}
+  body{font-family:'Inter',system-ui,-apple-system,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);
+       font-size:15px;line-height:1.55;-webkit-text-size-adjust:100%;-webkit-font-smoothing:antialiased;
+       font-feature-settings:'cv11','ss01';min-height:100vh;}
+  button,input,select,textarea{font-family:inherit;}
   .hidden{display:none !important;}
+  .sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;}
+  :focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
+  ::selection{background:var(--accent-soft-2);}
 
-  /* ── STRUCTURE APP (sidebar responsive) ── */
-  .app-shell{max-width:1180px;margin:0 auto;padding:16px 12px 48px;}
-  .app-main{min-width:0;}
-  @media(min-width:900px){
-    .app-shell{display:grid;grid-template-columns:230px 1fr;gap:32px;align-items:start;padding-top:28px;}
-    .app-nav{position:sticky;top:24px;}
-  }
-
-  /* ── ICONES ── */
-  .icon{display:inline-block;vertical-align:-4px;flex-shrink:0;}
-  .icon-sm{vertical-align:-3px;}
+  .icon{display:inline-block;vertical-align:-3px;flex-shrink:0;}
 
   /* ── TRADUCTION FR / MALAGASY ── */
   [data-mg]{display:none;}
@@ -47,519 +84,772 @@
   [data-mg-block]{display:none;}
   body.mg [data-fr-block]{display:none;}
   body.mg [data-mg-block]{display:block;}
-  .lang-bar{display:flex;justify-content:flex-end;gap:6px;margin-bottom:12px;}
-  .lang-btn{padding:8px 16px;border-radius:24px;border:1px solid var(--border);background:white;font-size:13px;
-            font-weight:600;cursor:pointer;transition:.15s;min-height:40px;display:flex;align-items:center;}
-  .lang-btn.active{background:var(--accent);color:white;border-color:var(--accent);}
 
-  /* ── LOGO ── */
-  .logo-mark{flex-shrink:0;}
+  .segmented{display:inline-flex;background:var(--surface-2);border:1px solid var(--border);border-radius:999px;padding:3px;gap:2px;}
+  .lang-btn{padding:5px 12px;border-radius:999px;border:none;background:transparent;color:var(--muted);font-size:12px;
+            font-weight:600;cursor:pointer;transition:background .2s var(--ease),color .2s var(--ease),box-shadow .2s;letter-spacing:.02em;}
+  .lang-btn:hover{color:var(--text);}
+  .lang-btn.active{background:var(--surface);color:var(--accent-text);box-shadow:var(--shadow-sm);}
+
   .brand{display:flex;align-items:center;gap:10px;}
+  .brand-name{font-size:18px;font-weight:800;letter-spacing:-.02em;}
+  .logo-mark{flex-shrink:0;}
 
-  header.topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px;}
-  header.topbar h1{font-size:20px;font-weight:700;letter-spacing:-.01em;}
-  header.topbar p{font-size:12px;color:var(--muted);margin-top:2px;}
-  .user-chip{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--muted);}
-  .user-chip strong{color:var(--text);}
+  /* ═════════════════════════════════════════════
+     BOUTONS / FORMULAIRES
+     ═════════════════════════════════════════════ */
+  .btn{position:relative;padding:10px 16px;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;
+       border:1px solid var(--border);background:var(--surface);color:var(--text);min-height:var(--tap);
+       display:inline-flex;align-items:center;justify-content:center;gap:8px;white-space:nowrap;box-shadow:var(--shadow-xs);
+       transition:background .15s,border-color .15s,color .15s,box-shadow .2s,transform .12s var(--ease);}
+  .btn:hover{background:var(--surface-hover);border-color:var(--border-strong);}
+  .btn:active{transform:scale(.97);}
+  .btn:disabled{opacity:.45;cursor:not-allowed;transform:none;}
+  .btn-prim{background:var(--accent);color:#fff;border-color:transparent;
+            box-shadow:0 1px 2px rgba(15,23,42,.1),inset 0 1px 0 rgba(255,255,255,.12);}
+  .btn-prim:hover{background:var(--accent-hover);border-color:transparent;box-shadow:0 6px 16px -6px rgba(79,70,229,.6);}
+  .btn-success{background:var(--success);color:#fff;border-color:transparent;}
+  .btn-success:hover{background:var(--success);filter:brightness(1.07);border-color:transparent;box-shadow:0 6px 16px -6px rgba(5,150,105,.55);}
+  .btn-danger{color:var(--danger);}
+  .btn-danger:hover{background:var(--danger-soft);border-color:var(--danger-border);color:var(--danger);}
+  .btn-ghost{background:transparent;border-color:transparent;box-shadow:none;color:var(--muted);}
+  .btn-ghost:hover{background:var(--surface-hover);color:var(--text);border-color:transparent;}
+  .btn-sm{padding:7px 11px;font-size:13px;min-height:36px;border-radius:9px;}
+  .btn-icon{padding:0;width:36px;min-width:36px;}
+  .btn-block{width:100%;}
+  .btn.is-loading{color:transparent !important;pointer-events:none;}
+  .btn.is-loading::after{content:'';position:absolute;width:18px;height:18px;border-radius:50%;
+       border:2px solid currentColor;border-color:rgba(255,255,255,.9) rgba(255,255,255,.9) transparent transparent;
+       animation:spin .7s linear infinite;}
+  .btn:not(.btn-prim):not(.btn-success).is-loading::after{border-color:var(--accent) var(--accent) transparent transparent;}
+  @keyframes spin{to{transform:rotate(360deg);}}
 
-  .tabs-wrap{position:sticky;top:0;z-index:50;background:var(--bg);padding:0 0 8px;margin-bottom:14px;}
-  .tabs{display:flex;gap:0;border-bottom:1.5px solid var(--border);overflow-x:auto;scrollbar-width:none;-ms-overflow-style:none;}
-  .tabs::-webkit-scrollbar{display:none;}
-  .tab{padding:10px 14px;font-size:12px;font-weight:600;border:none;background:none;color:var(--muted);cursor:pointer;
-       border-bottom:2.5px solid transparent;margin-bottom:-1.5px;white-space:nowrap;transition:.15s;min-height:44px;
-       display:flex;align-items:center;gap:8px;}
-  .tab.active{color:var(--accent);border-bottom-color:var(--accent);}
-  .section{display:none;} .section.active{display:block;animation:fadeIn .25s ease;}
-  @keyframes fadeIn{from{opacity:0;transform:translateY(4px);}to{opacity:1;transform:none;}}
+  .row-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:16px;flex-wrap:wrap;}
+  .row-actions .btn{flex:1;}
+  .link-btn{background:none;border:none;color:var(--accent-text);font-size:13px;font-weight:600;cursor:pointer;padding:2px 0;}
+  .link-btn:hover{text-decoration:underline;}
 
-  /* Sidebar desktop */
-  @media(min-width:900px){
-    header.topbar{flex-direction:column;align-items:flex-start;gap:16px;margin-bottom:20px;}
-    .user-chip{width:100%;justify-content:space-between;padding-top:14px;border-top:1px solid var(--border);}
-    .tabs-wrap{position:static;background:none;padding:0;margin-bottom:0;}
-    .tabs{flex-direction:column;border-bottom:none;gap:2px;overflow:visible;}
-    .tab{border-bottom:none;border-radius:10px;justify-content:flex-start;padding:11px 12px;
-         border-left:3px solid transparent;margin-bottom:0;}
-    .tab.active{background:#eef2ff;border-left-color:var(--accent);border-bottom-color:transparent;}
-    .lang-bar{justify-content:flex-start;}
+  .fgroup{display:flex;flex-direction:column;gap:6px;margin-bottom:14px;}
+  .fgroup label,.flabel{font-size:13px;font-weight:600;color:var(--text-2);}
+  .field-hint{font-size:12px;color:var(--muted);}
+  select,input[type=text],input[type=email],input[type=password],input[type=date],input[type=number],input[type=search],textarea{
+    width:100%;padding:11px 13px;border:1px solid var(--border-strong);border-radius:10px;font-size:15px;color:var(--text);
+    background:var(--surface);min-height:var(--tap);-webkit-appearance:none;appearance:none;box-shadow:var(--shadow-xs);
+    transition:border-color .15s,box-shadow .2s,background .15s;}
+  select:hover,input:hover,textarea:hover{border-color:var(--subtle);}
+  select:focus,input:focus,textarea:focus{outline:none;border-color:var(--accent);box-shadow:var(--ring);}
+  input::placeholder,textarea::placeholder{color:var(--subtle);}
+  select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+         background-repeat:no-repeat;background-position:right 12px center;padding-right:38px;cursor:pointer;}
+  textarea{resize:vertical;min-height:96px;}
+  .input-wrap{position:relative;}
+  .input-wrap input{padding-right:46px;}
+  .pwd-toggle{position:absolute;right:5px;top:50%;transform:translateY(-50%);}
+
+  .check{display:flex;align-items:flex-start;gap:12px;padding:11px 14px;border:1px solid var(--border);border-radius:10px;
+         cursor:pointer;background:var(--surface);transition:border-color .15s,background .15s;min-height:var(--tap);font-size:14px;}
+  .check:hover{border-color:var(--border-strong);}
+  .check:has(input:checked){border-color:var(--accent);background:var(--accent-soft);}
+  .check input[type=checkbox]{width:18px;height:18px;accent-color:var(--accent);margin-top:2px;flex-shrink:0;cursor:pointer;}
+
+  /* ═════════════════════════════════════════════
+     ÉCRAN D'AUTHENTIFICATION
+     ═════════════════════════════════════════════ */
+  #auth-screen{min-height:100vh;display:grid;grid-template-columns:1fr;}
+  @media(min-width:960px){#auth-screen{grid-template-columns:minmax(420px,1fr) minmax(480px,1fr);}}
+  .auth-aside{display:none;position:relative;overflow:hidden;color:#fff;padding:48px;
+              background:linear-gradient(150deg,#312e81 0%,#4f46e5 48%,#0ea5e9 130%);}
+  @media(min-width:960px){.auth-aside{display:flex;flex-direction:column;justify-content:space-between;}}
+  .auth-aside .orb{position:absolute;border-radius:50%;filter:blur(60px);opacity:.55;pointer-events:none;}
+  .auth-aside .orb-1{width:380px;height:380px;background:#818cf8;top:-120px;right:-80px;animation:float 14s ease-in-out infinite;}
+  .auth-aside .orb-2{width:320px;height:320px;background:#22d3ee;bottom:-120px;left:-60px;animation:float 18s ease-in-out infinite reverse;}
+  .auth-aside .grid-pattern{position:absolute;inset:0;opacity:.12;pointer-events:none;
+      background-image:linear-gradient(rgba(255,255,255,.5) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.5) 1px,transparent 1px);
+      background-size:44px 44px;mask-image:radial-gradient(ellipse at 30% 40%,#000 20%,transparent 75%);}
+  @keyframes float{0%,100%{transform:translate(0,0) scale(1);}50%{transform:translate(30px,40px) scale(1.08);}}
+  .auth-aside > *{position:relative;z-index:1;}
+  .auth-aside .brand-name{font-size:22px;}
+  .auth-hero h2{font-size:38px;line-height:1.12;font-weight:800;letter-spacing:-.03em;margin-bottom:16px;max-width:460px;}
+  .auth-hero p{font-size:16px;opacity:.85;max-width:420px;}
+  .auth-features{list-style:none;display:flex;flex-direction:column;gap:14px;margin-top:36px;}
+  .auth-features li{display:flex;align-items:center;gap:14px;font-size:15px;font-weight:500;
+                    animation:riseIn .6s var(--ease) both;animation-delay:calc(var(--i) * 90ms + 200ms);}
+  .auth-features .feat-ic{width:38px;height:38px;border-radius:11px;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.22);
+                          display:flex;align-items:center;justify-content:center;backdrop-filter:blur(6px);flex-shrink:0;}
+  .auth-foot{font-size:13px;opacity:.7;}
+
+  .auth-main{display:flex;flex-direction:column;padding:20px 20px 32px;}
+  .auth-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;}
+  @media(min-width:960px){.auth-top .brand{visibility:hidden;}}
+  .auth-center{flex:1;display:flex;align-items:center;justify-content:center;}
+  .auth-card{width:100%;max-width:400px;animation:riseIn .5s var(--ease) both;}
+  .auth-card h1{font-size:26px;font-weight:800;letter-spacing:-.025em;margin-bottom:6px;}
+  .auth-card .sub{color:var(--muted);font-size:14px;margin-bottom:26px;}
+  .auth-form{animation:fadeSlide .35s var(--ease) both;}
+  .auth-switch{text-align:center;font-size:14px;color:var(--muted);margin-top:22px;}
+  .auth-switch a{color:var(--accent-text);font-weight:600;cursor:pointer;text-decoration:none;margin-left:4px;}
+  .auth-switch a:hover{text-decoration:underline;}
+  .auth-row{display:flex;justify-content:space-between;align-items:center;margin:-4px 0 18px;}
+
+  /* ═════════════════════════════════════════════
+     STRUCTURE DE L'APPLICATION
+     ═════════════════════════════════════════════ */
+  .app{min-height:100vh;}
+  .sidebar{background:var(--surface);border-right:1px solid var(--border);}
+  .sidebar-brand{display:flex;align-items:center;justify-content:space-between;padding:22px 20px 18px;}
+  .sidebar-brand small{display:block;font-size:11px;color:var(--muted);font-weight:500;margin-top:1px;}
+  .nav-label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--subtle);padding:10px 22px 8px;}
+  .tabs{display:flex;flex-direction:column;gap:2px;padding:0 12px;}
+  .tab{position:relative;display:flex;align-items:center;gap:12px;padding:10px 12px;border:none;background:none;color:var(--muted);
+       font-size:14px;font-weight:600;border-radius:10px;cursor:pointer;text-align:left;
+       transition:background .15s,color .15s;}
+  .tab .icon{transition:transform .25s var(--ease);}
+  .tab:hover{background:var(--surface-hover);color:var(--text);}
+  .tab:hover .icon{transform:translateX(1px) scale(1.06);}
+  .tab.active{background:var(--accent-soft);color:var(--accent-text);}
+  .tab.active::before{content:'';position:absolute;left:-12px;top:8px;bottom:8px;width:3px;border-radius:0 3px 3px 0;
+                      background:var(--accent);animation:growY .3s var(--ease);}
+  @keyframes growY{from{transform:scaleY(0);}to{transform:scaleY(1);}}
+  .sidebar-foot{margin-top:auto;padding:14px 12px 16px;display:flex;flex-direction:column;gap:12px;}
+  .sidebar-foot .lang-row{display:flex;align-items:center;justify-content:space-between;padding:0 8px;font-size:12px;color:var(--muted);font-weight:600;}
+  .user-card{display:flex;align-items:center;gap:10px;padding:10px;border:1px solid var(--border);border-radius:12px;background:var(--surface-2);}
+  .avatar{width:36px;height:36px;border-radius:10px;flex-shrink:0;display:flex;align-items:center;justify-content:center;
+          font-size:13px;font-weight:700;color:#fff;background:linear-gradient(135deg,#6366f1,#0ea5e9);letter-spacing:.02em;}
+  .user-meta{flex:1;min-width:0;line-height:1.3;}
+  .user-meta strong{display:block;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .user-meta span{display:block;font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+
+  .mobile-bar{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 16px;
+              position:sticky;top:0;z-index:60;background:color-mix(in srgb,var(--bg) 82%,transparent);
+              backdrop-filter:saturate(1.6) blur(14px);-webkit-backdrop-filter:saturate(1.6) blur(14px);border-bottom:1px solid var(--border);}
+  .mobile-bar .right{display:flex;align-items:center;gap:6px;}
+  .app-main{min-width:0;}
+  .app-content{max-width:1120px;margin:0 auto;padding:20px 16px calc(var(--bottom-nav-h) + 32px + env(safe-area-inset-bottom));}
+
+  /* Mobile : la barre latérale devient une barre de navigation en bas de l'écran */
+  @media(max-width:959px){
+    .sidebar{position:fixed;left:0;right:0;bottom:0;z-index:70;border-right:none;border-top:1px solid var(--border);
+             padding-bottom:env(safe-area-inset-bottom);background:color-mix(in srgb,var(--surface) 90%,transparent);
+             backdrop-filter:saturate(1.6) blur(16px);-webkit-backdrop-filter:saturate(1.6) blur(16px);}
+    .sidebar-brand,.sidebar-foot,.nav-label{display:none;}
+    .tabs{flex-direction:row;justify-content:space-around;padding:6px 4px;height:var(--bottom-nav-h);}
+    .tab{flex:1;flex-direction:column;gap:3px;padding:6px 2px;font-size:10.5px;justify-content:center;align-items:center;text-align:center;}
+    .tab .icon{width:20px;height:20px;}
+    .tab:hover{background:none;}
+    .tab.active{background:none;}
+    .tab.active .icon{transform:translateY(-1px);}
+    .tab.active::before{left:28%;right:28%;top:-6px;bottom:auto;width:auto;height:3px;border-radius:0 0 3px 3px;}
+    body.in-interview .sidebar{transform:translateY(110%);}
+    .sidebar{transition:transform .3s var(--ease);}
+  }
+  @media(min-width:960px){
+    .app{display:grid;grid-template-columns:var(--sidebar-w) 1fr;}
+    .sidebar{position:sticky;top:0;height:100vh;display:flex;flex-direction:column;overflow-y:auto;}
+    .mobile-bar{display:none;}
+    .app-content{padding:32px 40px 56px;}
   }
 
-  .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:14px;box-shadow:var(--shadow);}
-  .card-title{font-size:11px;font-weight:700;color:var(--muted);margin-bottom:14px;text-transform:uppercase;letter-spacing:.06em;
-              display:flex;align-items:center;gap:6px;justify-content:space-between;}
-  .card-title .ct-left{display:flex;align-items:center;gap:6px;}
+  /* ═════════════════════════════════════════════
+     EN-TÊTES DE PAGE, CARTES
+     ═════════════════════════════════════════════ */
+  .page-head{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;margin-bottom:22px;flex-wrap:wrap;}
+  .page-head h1{font-size:24px;font-weight:800;letter-spacing:-.025em;line-height:1.2;}
+  .page-head p{color:var(--muted);font-size:14px;margin-top:4px;}
+  @media(min-width:960px){.page-head h1{font-size:28px;}}
 
-  .fgroup{display:flex;flex-direction:column;gap:4px;margin-bottom:12px;}
-  .fgroup label{font-size:12px;font-weight:600;color:var(--muted);}
-  select,input[type=text],input[type=email],input[type=password],input[type=date],input[type=number],textarea{
-    width:100%;padding:12px;border:1.5px solid var(--border);border-radius:10px;font-family:'DM Sans',sans-serif;
-    font-size:15px;color:var(--text);background:var(--bg);transition:border-color .15s;min-height:var(--tap);
-    -webkit-appearance:none;appearance:none;}
-  select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
-         background-repeat:no-repeat;background-position:right 12px center;padding-right:36px;}
-  select:focus,input:focus,textarea:focus{outline:none;border-color:var(--accent);background:white;}
-  textarea{resize:vertical;min-height:80px;}
+  .section{display:none;}
+  .section.active{display:block;animation:fadeSlide .35s var(--ease) both;}
+  @keyframes fadeSlide{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:none;}}
+  @keyframes riseIn{from{opacity:0;transform:translateY(14px);}to{opacity:1;transform:none;}}
+  @keyframes fadeIn{from{opacity:0;}to{opacity:1;}}
+  .stagger > *{animation:riseIn .45s var(--ease) backwards;animation-delay:calc(var(--i, 0) * 45ms);}
 
-  .checks{display:flex;flex-direction:column;gap:8px;}
-  .check{display:flex;align-items:flex-start;gap:12px;padding:10px 14px;border:1.5px solid var(--border);border-radius:10px;
-         cursor:pointer;background:var(--bg);transition:border-color .15s,background .15s;min-height:var(--tap);}
-  .check:has(input:checked){border-color:var(--accent);background:#eff6ff;}
-  .check input[type=checkbox]{width:20px;height:20px;accent-color:var(--accent);margin-top:2px;flex-shrink:0;cursor:pointer;}
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:20px;margin-bottom:16px;box-shadow:var(--shadow-sm);}
+  .card-title{font-size:15px;font-weight:700;color:var(--text);margin-bottom:16px;letter-spacing:-.01em;
+              display:flex;align-items:center;gap:8px;justify-content:space-between;}
+  .card-title .ct-left{display:flex;align-items:center;gap:8px;}
+  .card-sub{font-size:13px;color:var(--muted);margin:-10px 0 16px;}
+  .chip{display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:600;background:var(--surface-2);padding:3px 9px;
+        border-radius:999px;color:var(--muted);border:1px solid var(--border);white-space:nowrap;}
+  .chip-accent{background:var(--accent-soft);color:var(--accent-text);border-color:transparent;}
+  .mono{font-family:'JetBrains Mono',ui-monospace,monospace;font-size:12px;}
 
-  .btn{padding:12px 18px;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;border:1.5px solid var(--border);
-       background:white;color:var(--text);transition:.15s;min-height:var(--tap);display:inline-flex;align-items:center;gap:6px;}
-  .btn:active{transform:scale(.97);}
-  .btn-prim{background:var(--accent);color:white;border-color:var(--accent);}
-  .btn-prim:active{background:#4338ca;}
-  .btn-sm{padding:8px 12px;font-size:12px;min-height:36px;}
-  .btn-danger{color:var(--danger);border-color:#fecaca;}
-  .btn-danger:active{background:#fef2f2;}
-  .btn-success{background:var(--success);color:white;border-color:var(--success);}
-  .row-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:16px;flex-wrap:wrap;}
-  .row-actions .btn{flex:1;justify-content:center;}
+  .empty{text-align:center;padding:48px 20px;color:var(--muted);font-size:14px;display:flex;flex-direction:column;align-items:center;gap:12px;
+         border:1px dashed var(--border-strong);border-radius:var(--radius-lg);background:var(--surface);animation:fadeSlide .4s var(--ease) both;}
+  .empty-ic{width:56px;height:56px;border-radius:16px;background:var(--accent-soft);color:var(--accent-text);display:flex;align-items:center;justify-content:center;}
+  .empty strong{color:var(--text);font-size:15px;}
+  .empty > div:last-child{max-width:380px;}
 
-  .alert{padding:12px 16px;border-radius:10px;font-size:14px;margin-bottom:14px;display:none;align-items:center;gap:8px;}
-  .alert-ok{background:#ecfdf5;color:#065f46;border:1px solid #a7f3d0;}
-  .alert-err{background:#fef2f2;color:#991b1b;border:1px solid #fecaca;}
+  /* SKELETONS (chargement) */
+  .skeleton{border-radius:8px;background:linear-gradient(90deg,var(--skeleton) 0%,var(--skeleton-shine) 50%,var(--skeleton) 100%);
+            background-size:200% 100%;animation:shimmer 1.3s ease-in-out infinite;}
+  @keyframes shimmer{from{background-position:200% 0;}to{background-position:-200% 0;}}
+  .sk-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:20px;display:flex;flex-direction:column;gap:12px;}
 
-  .empty{text-align:center;padding:36px 20px;color:var(--muted);font-size:14px;display:flex;flex-direction:column;align-items:center;gap:10px;}
-  .chip{font-family:'DM Mono',monospace;font-size:11px;background:var(--bg);padding:2px 7px;border-radius:4px;color:var(--muted);border:1px solid var(--border);}
+  /* KPI */
+  .stats-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:20px;}
+  @media(min-width:640px){.stats-grid{grid-template-columns:repeat(3,1fr);gap:16px;}}
+  .stat-card{position:relative;overflow:hidden;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);
+             padding:16px 18px;box-shadow:var(--shadow-sm);display:flex;flex-direction:column;gap:10px;transition:transform .2s var(--ease),box-shadow .2s;}
+  .stat-card:hover{transform:translateY(-2px);box-shadow:var(--shadow-md);}
+  .stat-ic{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;background:var(--accent-soft);color:var(--accent-text);}
+  .stat-card:nth-child(2) .stat-ic{background:var(--success-soft);color:var(--success);}
+  .stat-card:nth-child(3) .stat-ic{background:var(--warning-soft);color:var(--warning);}
+  .stat-num{font-size:28px;font-weight:800;letter-spacing:-.03em;line-height:1;font-variant-numeric:tabular-nums;}
+  .stat-label{font-size:13px;color:var(--muted);font-weight:500;}
+  @media(max-width:639px){.stats-grid .stat-card:nth-child(3){grid-column:1 / -1;}}
 
-  /* AUTH */
-  #auth-screen{max-width:400px;margin:60px auto;padding:0 16px;}
-  #auth-screen .brand{justify-content:center;margin-bottom:6px;}
-  #auth-screen h1{font-size:22px;text-align:center;}
-  #auth-screen p.sub{color:var(--muted);font-size:13px;text-align:center;margin-bottom:24px;}
-  .auth-switch{text-align:center;font-size:13px;color:var(--muted);margin-top:10px;}
-  .auth-switch a{color:var(--accent);font-weight:600;cursor:pointer;text-decoration:none;}
+  /* ═════════════════════════════════════════════
+     LISTE DES QUESTIONNAIRES
+     ═════════════════════════════════════════════ */
+  .create-row{display:grid;grid-template-columns:1fr;gap:12px;align-items:end;}
+  @media(min-width:760px){.create-row{grid-template-columns:1.2fr 1.4fr auto;}}
+  .create-row .fgroup{margin-bottom:0;}
+  .list-head{display:flex;align-items:center;justify-content:space-between;margin:28px 0 12px;}
+  .list-head h2{font-size:16px;font-weight:700;letter-spacing:-.01em;}
+  .q-list{display:grid;grid-template-columns:1fr;gap:12px;}
+  @media(min-width:1100px){.q-list{grid-template-columns:1fr 1fr;}}
+  .q-item{display:flex;flex-direction:column;gap:14px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);
+          padding:18px;box-shadow:var(--shadow-sm);transition:transform .2s var(--ease),box-shadow .2s,border-color .2s;}
+  .q-item:hover{transform:translateY(-2px);box-shadow:var(--shadow-md);border-color:var(--border-strong);}
+  .q-top{display:flex;gap:14px;align-items:flex-start;}
+  .q-badge{width:42px;height:42px;border-radius:12px;flex-shrink:0;display:flex;align-items:center;justify-content:center;
+           font-weight:800;font-size:16px;color:#fff;}
+  .q-info{flex:1;min-width:0;}
+  .q-info h3{font-size:16px;font-weight:700;letter-spacing:-.01em;margin-bottom:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .q-info .q-desc{font-size:13px;color:var(--muted);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+  .q-meta{display:flex;gap:6px;flex-wrap:wrap;}
+  .q-actions{display:flex;gap:6px;flex-wrap:wrap;align-items:center;padding-top:14px;border-top:1px solid var(--border);}
+  .q-actions .spacer{flex:1;}
 
-  /* LISTE QUESTIONNAIRES */
-  .q-list{display:flex;flex-direction:column;gap:10px;}
-  .q-item{display:flex;justify-content:space-between;align-items:center;gap:10px;background:white;
-          border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;box-shadow:var(--shadow);flex-wrap:wrap;}
-  .q-item .q-info h3{font-size:15px;font-weight:700;margin-bottom:3px;}
-  .q-item .q-info p{font-size:12px;color:var(--muted);}
-  .q-item .q-actions{display:flex;gap:6px;flex-wrap:wrap;}
-
-  /* EDITEUR */
-  .q-editor-item{border:1.5px solid var(--border);border-radius:12px;padding:14px;margin-bottom:12px;background:var(--bg);}
-  .q-editor-item .qe-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;gap:8px;}
-  .qe-order-btns{display:flex;gap:4px;}
-  .qe-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;}
-  @media(max-width:520px){.qe-row{grid-template-columns:1fr;}}
-  .qe-opt-row{display:flex;gap:8px;margin-bottom:6px;align-items:center;}
-  .qe-opt-row input{min-height:40px;padding:8px 10px;font-size:13px;}
-  .mg-hint{font-size:11px;color:var(--accent2);margin-top:2px;}
-
-  /* MODE ENTRETIEN — page dédiée (plus de modale flottante) */
-  .back-btn{margin-bottom:16px;}
-  .interview-page{max-width:640px;margin:0 auto;}
-  .interview-modal{background:white;border-radius:16px;width:100%;box-shadow:var(--shadow);border:1px solid var(--border);
-                   display:flex;flex-direction:column;overflow:hidden;}
-  .interview-header{padding:18px 20px 14px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;flex-shrink:0;}
-  .interview-header h2{font-size:15px;font-weight:700;}
-  .interview-progress{font-size:12px;color:var(--muted);}
-  .interview-body{padding:28px 24px;flex:1;}
-  .interview-q-fr{font-size:18px;font-weight:600;color:var(--text);margin-bottom:4px;line-height:1.35;}
-  .interview-q-mg{font-size:13px;color:#7c3aed;font-style:italic;margin-bottom:20px;line-height:1.4;}
-  .interview-opts{display:flex;flex-direction:column;gap:10px;}
-  .interview-opt{padding:14px 16px;border:2px solid var(--border);border-radius:12px;cursor:pointer;font-size:15px;
-                 transition:.15s;text-align:left;background:white;min-height:var(--tap);}
-  .interview-opt:active{transform:scale(.98);}
-  .interview-opt.selected{border-color:var(--accent);background:#eff6ff;color:var(--accent);font-weight:600;}
-  .interview-opt .opt-mg{display:block;font-size:12px;color:#7c3aed;font-style:italic;margin-top:2px;font-weight:400;}
-  .interview-chks{display:flex;flex-direction:column;gap:10px;}
-  .interview-chk{display:flex;align-items:flex-start;gap:12px;padding:12px 14px;border:2px solid var(--border);border-radius:12px;
-                 cursor:pointer;transition:border-color .15s,background .15s;min-height:var(--tap);}
-  .interview-chk.selected{border-color:var(--accent);background:#eff6ff;}
-  .interview-chk input{width:22px;height:22px;margin-top:1px;flex-shrink:0;accent-color:var(--accent);}
-  .i-autre{margin-top:10px;display:flex;align-items:center;gap:8px;}
-  .i-autre input{flex:1;padding:12px;border:2px dashed var(--border);border-radius:10px;font-size:14px;min-height:44px;}
-  .interview-textarea{width:100%;border:2px solid var(--border);border-radius:12px;padding:12px 14px;font-family:'DM Sans',sans-serif;
-                      font-size:15px;min-height:100px;resize:vertical;}
-  .interview-footer{padding:16px 20px;border-top:1px solid var(--border);flex-shrink:0;display:flex;justify-content:space-between;gap:10px;}
-  .interview-footer .btn{flex:1;justify-content:center;}
-  .progress-bar{height:4px;background:var(--bg);flex-shrink:0;}
-  .progress-fill{height:4px;background:var(--accent);transition:width .3s ease;}
-  .interview-consent-box{background:#eff6ff;border:1.5px solid #bfdbfe;border-radius:12px;padding:14px;margin-bottom:14px;}
-  .interview-consent-box p{font-size:12px;color:#1e40af;margin-bottom:10px;line-height:1.5;}
-
-  /* REGISTRE */
-  .tbl-wrap{overflow-x:auto;display:block;}
-  @media(max-width:600px){.tbl-wrap{display:none;}}
-  table{width:100%;border-collapse:collapse;font-size:13px;}
-  th{text-align:left;padding:8px 10px;background:var(--bg);font-weight:700;color:var(--muted);border-bottom:1px solid var(--border);
-     font-size:10px;text-transform:uppercase;letter-spacing:.05em;}
-  td{padding:9px 10px;border-bottom:1px solid var(--border);vertical-align:middle;}
-  tr:hover td{background:#fafafa;}
-  .reg-cards{display:none;}
-  @media(max-width:600px){.reg-cards{display:flex;flex-direction:column;gap:10px;}}
-  .reg-card{background:white;border:1px solid var(--border);border-radius:var(--radius);padding:14px;box-shadow:var(--shadow);}
-  .reg-card-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;}
-  .reg-card-id{font-family:'DM Mono',monospace;font-size:11px;background:var(--bg);padding:3px 8px;border-radius:5px;color:var(--muted);border:1px solid var(--border);}
-  .reg-card-date{font-size:11px;color:var(--muted);}
-  .reg-card-body{display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:12px;margin-bottom:10px;}
-  .reg-card-field span{display:block;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;}
-  .reg-card-field strong{color:var(--text);font-size:13px;}
-
-  /* STATS */
-  .stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;}
-  @media(min-width:480px){.stats-grid{grid-template-columns:repeat(3,1fr);}}
-  .stat-card{background:white;border:1px solid var(--border);border-radius:var(--radius);padding:14px;text-align:center;}
-  .stat-num{font-size:26px;font-weight:700;color:var(--accent);}
-  .stat-label{font-size:11px;color:var(--muted);margin-top:3px;}
-
-  .qselect-bar{display:flex;gap:10px;align-items:center;margin-bottom:14px;flex-wrap:wrap;}
-  .qselect-bar select{flex:1;min-width:200px;}
-
-  /* GRAPHIQUES (Chart.js) */
-  .charts-grid{display:grid;grid-template-columns:1fr;gap:14px;}
-  @media(min-width:760px){.charts-grid{grid-template-columns:1fr 1fr;}}
-  .chart-card.full{grid-column:1 / -1;}
-  .chart-wrap{position:relative;height:240px;margin-top:4px;}
-  .chart-wrap.tall{height:280px;}
-
-  /* EXPORT / TOOLBAR */
+  /* ═════════════════════════════════════════════
+     ÉDITEUR
+     ═════════════════════════════════════════════ */
+  .editor-toolbar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;}
   .toolbar{display:flex;justify-content:flex-end;gap:8px;margin-bottom:14px;flex-wrap:wrap;}
+  .q-editor-item{border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:12px;background:var(--surface-2);
+                 transition:border-color .2s,box-shadow .2s;}
+  .q-editor-item.is-new{animation:riseIn .35s var(--ease) backwards;}
+  .q-editor-item:focus-within{border-color:var(--accent);box-shadow:var(--ring);background:var(--surface);}
+  .q-editor-item .qe-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;gap:8px;}
+  .qe-num{display:inline-flex;align-items:center;gap:8px;font-weight:700;font-size:14px;}
+  .qe-num b{display:inline-flex;align-items:center;justify-content:center;min-width:28px;height:28px;padding:0 8px;border-radius:8px;
+            background:var(--accent);color:#fff;font-size:12px;}
+  .qe-order-btns{display:flex;gap:4px;}
+  .qe-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;}
+  @media(max-width:560px){.qe-row{grid-template-columns:1fr;}}
+  .qe-row .fgroup{margin-bottom:0;}
+  .qe-section{margin-top:14px;padding-top:14px;border-top:1px dashed var(--border-strong);}
+  .qe-opt-row{display:flex;gap:8px;margin-bottom:8px;align-items:center;}
+  .qe-opt-row input{min-height:40px;padding:8px 11px;font-size:14px;}
+  .mg-hint{font-size:12px;color:var(--translate);}
+  .showif-row{display:flex;gap:8px;margin-top:8px;}
+  .showif-row select,.showif-row input{flex:1;}
+  .add-q-btn{width:100%;border-style:dashed;border-width:1.5px;color:var(--accent-text);background:transparent;box-shadow:none;min-height:52px;}
+  .add-q-btn:hover{background:var(--accent-soft);border-color:var(--accent);}
+  .sticky-save{position:sticky;bottom:calc(var(--bottom-nav-h) + 12px + env(safe-area-inset-bottom));z-index:20;
+               display:flex;justify-content:flex-end;padding:12px;margin-top:4px;border-radius:14px;
+               background:color-mix(in srgb,var(--surface) 88%,transparent);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
+               border:1px solid var(--border);box-shadow:var(--shadow-md);}
+  @media(min-width:960px){.sticky-save{bottom:16px;}}
+  .draft-banner{border-color:var(--warning-border) !important;background:var(--warning-soft) !important;}
+  .draft-banner .card-title{color:var(--warning-text);}
 
-  /* BANNIÈRE HORS-LIGNE */
-  .offline-banner{display:none;align-items:center;gap:10px;background:#fffbeb;border:1px solid #fde68a;color:#92400e;
-                   border-radius:10px;padding:10px 14px;font-size:13px;margin-bottom:14px;}
-  .offline-banner.show{display:flex;}
-  .offline-banner .btn{margin-left:auto;}
+  /* ═════════════════════════════════════════════
+     MODE ENTRETIEN
+     ═════════════════════════════════════════════ */
+  .interview-page{max-width:680px;margin:0 auto;}
+  .back-btn{margin-bottom:16px;}
+  .interview-modal{background:var(--surface);border-radius:var(--radius-xl);width:100%;box-shadow:var(--shadow-md);border:1px solid var(--border);
+                   display:flex;flex-direction:column;overflow:hidden;}
+  .interview-header{padding:20px 24px 16px;display:flex;justify-content:space-between;align-items:center;gap:12px;}
+  .interview-header h2{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--accent-text);
+                       overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .interview-progress{font-size:13px;color:var(--muted);font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap;}
+  .progress-bar{height:6px;background:var(--surface-hover);margin:0 24px;border-radius:999px;overflow:hidden;}
+  .progress-fill{height:100%;border-radius:999px;background:linear-gradient(90deg,var(--accent),#0ea5e9);transition:width .45s var(--ease);}
+  .interview-body{padding:28px 24px 32px;flex:1;min-height:280px;}
+  .interview-body.step-next{animation:stepNext .35s var(--ease) both;}
+  .interview-body.step-prev{animation:stepPrev .35s var(--ease) both;}
+  @keyframes stepNext{from{opacity:0;transform:translateX(24px);}to{opacity:1;transform:none;}}
+  @keyframes stepPrev{from{opacity:0;transform:translateX(-24px);}to{opacity:1;transform:none;}}
+  .interview-q-fr{font-size:21px;font-weight:700;color:var(--text);margin-bottom:6px;line-height:1.35;letter-spacing:-.015em;}
+  .interview-q-fr .req{color:var(--danger);margin-left:3px;}
+  .interview-q-mg{font-size:14px;color:var(--translate);font-style:italic;margin-bottom:22px;line-height:1.45;}
+  .interview-q-fr + .interview-opts,.interview-q-fr + .interview-chks,.interview-q-fr + input,.interview-q-fr + textarea,
+  .interview-q-fr + .capture-box,.interview-q-fr + .interview-consent-box{margin-top:20px;}
+  .interview-opts{display:flex;flex-direction:column;gap:10px;}
+  .interview-opt{display:flex;align-items:center;gap:14px;padding:14px 16px;border:1.5px solid var(--border);border-radius:12px;cursor:pointer;
+                 font-size:15px;font-weight:500;text-align:left;background:var(--surface);color:var(--text);min-height:54px;
+                 transition:border-color .15s,background .15s,transform .12s var(--ease),box-shadow .2s;
+                 animation:riseIn .35s var(--ease) backwards;animation-delay:calc(var(--i, 0) * 35ms + 60ms);}
+  .interview-opt:hover{border-color:var(--border-strong);background:var(--surface-2);}
+  .interview-opt:active{transform:scale(.985);}
+  .interview-opt.selected{border-color:var(--accent);background:var(--accent-soft);box-shadow:0 0 0 1px var(--accent);}
+  .opt-dot{width:20px;height:20px;border-radius:50%;border:2px solid var(--border-strong);flex-shrink:0;position:relative;transition:border-color .15s;}
+  .interview-opt.selected .opt-dot{border-color:var(--accent);}
+  .interview-opt.selected .opt-dot::after{content:'';position:absolute;inset:3px;border-radius:50%;background:var(--accent);animation:pop .25s var(--ease);}
+  @keyframes pop{from{transform:scale(0);}to{transform:scale(1);}}
+  .opt-text{flex:1;}
+  .opt-mg{display:block;font-size:13px;color:var(--translate);font-style:italic;margin-top:2px;font-weight:400;}
+  .scale-row{flex-direction:row;flex-wrap:wrap;gap:8px;}
+  .scale-row .interview-opt{flex:1;min-width:52px;justify-content:center;padding:14px 8px;font-weight:700;font-size:16px;}
+  .scale-legend{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-top:8px;}
+  .interview-chks{display:flex;flex-direction:column;gap:10px;}
+  .interview-chk{display:flex;align-items:flex-start;gap:12px;padding:14px 16px;border:1.5px solid var(--border);border-radius:12px;font-size:15px;
+                 cursor:pointer;transition:border-color .15s,background .15s;min-height:54px;background:var(--surface);
+                 animation:riseIn .35s var(--ease) backwards;animation-delay:calc(var(--i, 0) * 35ms + 60ms);}
+  .interview-chk:hover{border-color:var(--border-strong);}
+  .interview-chk.selected{border-color:var(--accent);background:var(--accent-soft);}
+  .interview-chk input{width:20px;height:20px;margin-top:1px;flex-shrink:0;accent-color:var(--accent);}
+  .i-autre{margin-top:12px;display:flex;align-items:center;gap:10px;}
+  .i-autre span{font-size:13px;color:var(--muted);font-weight:600;white-space:nowrap;}
+  .i-autre input{flex:1;border-style:dashed;}
+  .interview-input{min-height:56px !important;font-size:17px !important;padding:14px 16px !important;}
+  .interview-textarea{min-height:140px;font-size:16px;}
+  .capture-box{background:var(--surface-2);border:1.5px dashed var(--border-strong);border-radius:14px;padding:20px;text-align:center;}
+  .capture-box p{font-size:14px;color:var(--muted);margin-bottom:12px;}
+  .capture-box img{max-width:100%;border-radius:10px;margin-bottom:12px;box-shadow:var(--shadow-md);animation:fadeIn .3s;}
+  .interview-footer{padding:16px 24px;border-top:1px solid var(--border);display:flex;justify-content:space-between;gap:10px;background:var(--surface-2);}
+  .interview-footer .btn{flex:1;}
+  .interview-consent-box{background:var(--info-soft);border:1px solid var(--info-border);border-radius:14px;padding:16px;}
+  .interview-consent-box p{font-size:14px;color:var(--info-text);margin-bottom:12px;line-height:1.5;}
+  .preview-badge{background:var(--warning-soft);color:var(--warning-text);border:1px solid var(--warning-border);font-size:12px;font-weight:700;
+                 padding:5px 11px;border-radius:999px;display:inline-flex;align-items:center;gap:6px;margin-bottom:16px;}
+  .start-hero{display:flex;flex-direction:column;align-items:flex-start;gap:16px;}
+  .qselect-bar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;}
+  .qselect-bar select{flex:1;min-width:220px;}
+  .qselect-bar + .qselect-bar{margin-top:12px;}
 
-  /* PAGINATION */
-  .pagination{display:flex;justify-content:center;align-items:center;gap:12px;margin-top:14px;}
-  .pagination span{font-size:13px;color:var(--muted);}
+  /* ═════════════════════════════════════════════
+     REGISTRE
+     ═════════════════════════════════════════════ */
+  .tbl-card{padding:0;overflow:hidden;}
+  .tbl-wrap{overflow-x:auto;display:block;}
+  @media(max-width:640px){.tbl-wrap{display:none;}.tbl-card{display:none;}}
+  table{width:100%;border-collapse:separate;border-spacing:0;font-size:14px;}
+  th{position:sticky;top:0;text-align:left;padding:11px 14px;background:var(--surface-2);font-weight:600;color:var(--muted);
+     border-bottom:1px solid var(--border);font-size:12px;white-space:nowrap;}
+  td{padding:12px 14px;border-bottom:1px solid var(--border);vertical-align:middle;max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  tbody tr{transition:background .12s;animation:fadeIn .3s both;}
+  tbody tr:hover td{background:var(--surface-2);}
+  tbody tr:last-child td{border-bottom:none;}
+  td.td-actions{text-align:right;white-space:nowrap;}
+  .td-actions .btn{opacity:.7;}
+  tr:hover .td-actions .btn{opacity:1;}
+  .ref-chip{font-family:'JetBrains Mono',ui-monospace,monospace;font-size:12px;background:var(--surface-2);padding:3px 8px;border-radius:6px;
+            color:var(--text-2);border:1px solid var(--border);}
+  .reg-cards{display:none;}
+  @media(max-width:640px){.reg-cards{display:flex;flex-direction:column;gap:10px;}}
+  .reg-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px;box-shadow:var(--shadow-sm);}
+  .reg-card-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;}
+  .reg-card-date{font-size:12px;color:var(--muted);}
+  .reg-card-body{display:grid;grid-template-columns:1fr 1fr;gap:10px;font-size:13px;margin-bottom:14px;}
+  .reg-card-field span{display:block;font-size:11px;color:var(--muted);font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .reg-card-field strong{color:var(--text);font-size:14px;font-weight:600;word-break:break-word;}
+  .reg-card-actions{display:flex;gap:8px;}
+  .reg-card-actions .btn{flex:1;}
+  .pagination{display:flex;justify-content:center;align-items:center;gap:12px;margin-top:16px;}
+  .pagination span{font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums;}
+  .search-wrap{position:relative;flex:1;min-width:220px;}
+  .search-wrap input{padding-left:40px;}
+  .search-wrap .icon{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--subtle);pointer-events:none;}
+  .export-group{display:flex;gap:6px;flex-wrap:wrap;}
 
-  /* BROUILLON */
-  .draft-banner{border-color:var(--warning) !important;background:#fffbeb !important;}
-  .draft-banner .card-title{color:#92400e;}
+  /* ═════════════════════════════════════════════
+     STATISTIQUES
+     ═════════════════════════════════════════════ */
+  .charts-grid{display:grid;grid-template-columns:1fr;gap:16px;}
+  @media(min-width:860px){.charts-grid{grid-template-columns:1fr 1fr;}}
+  .chart-card{margin-bottom:0;animation:riseIn .45s var(--ease) backwards;animation-delay:calc(var(--i, 0) * 60ms);}
+  .chart-card.full{margin-bottom:16px;}
+  .chart-card .card-title{font-size:14px;}
+  .chart-wrap{position:relative;height:250px;}
 
-  /* MOT DE PASSE OUBLIÉ */
-  .link-btn{background:none;border:none;color:var(--accent);font-size:13px;font-weight:600;cursor:pointer;padding:4px 0;text-align:left;}
+  /* ═════════════════════════════════════════════
+     BANNIÈRE HORS-LIGNE, TOASTS, MODALES
+     ═════════════════════════════════════════════ */
+  .offline-banner{display:none;align-items:center;gap:10px;flex-wrap:wrap;background:var(--warning-soft);border:1px solid var(--warning-border);
+                  color:var(--warning-text);border-radius:12px;padding:10px 14px;font-size:14px;margin-bottom:18px;font-weight:500;}
+  .offline-banner.show{display:flex;animation:fadeSlide .3s var(--ease);}
+  .offline-banner #offline-banner-text{flex:1;min-width:180px;}
 
-  /* CONDITION D'AFFICHAGE (éditeur) */
-  .showif-row{display:flex;gap:8px;margin-top:6px;}
-  .showif-row select, .showif-row input{flex:1;}
+  .toast-container{position:fixed;top:16px;right:16px;left:16px;z-index:400;display:flex;flex-direction:column;gap:10px;align-items:flex-end;pointer-events:none;}
+  @media(min-width:520px){.toast-container{left:auto;width:380px;top:20px;right:20px;}}
+  .toast{pointer-events:auto;width:100%;background:var(--surface);border-radius:14px;box-shadow:var(--shadow-lg);position:relative;overflow:hidden;
+         border:1px solid var(--border);padding:14px;display:flex;align-items:flex-start;gap:12px;font-size:14px;line-height:1.45;
+         opacity:0;transform:translateX(24px) scale(.98);transition:opacity .25s var(--ease),transform .3s var(--ease);}
+  .toast.show{opacity:1;transform:none;}
+  .toast .toast-ic{width:30px;height:30px;border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+  .toast-ok .toast-ic{background:var(--success-soft);color:var(--success);}
+  .toast-err .toast-ic{background:var(--danger-soft);color:var(--danger);}
+  .toast-info .toast-ic{background:var(--accent-soft);color:var(--accent-text);}
+  .toast-msg{flex:1;padding-top:4px;color:var(--text);}
+  .toast-close{background:none;border:none;cursor:pointer;color:var(--muted);padding:4px;flex-shrink:0;border-radius:6px;display:flex;}
+  .toast-close:hover{background:var(--surface-hover);color:var(--text);}
+  .toast-timer{position:absolute;left:0;bottom:0;height:3px;width:100%;transform-origin:left;opacity:.6;animation:timer linear forwards;}
+  .toast-ok .toast-timer{background:var(--success);}
+  .toast-err .toast-timer{background:var(--danger);}
+  .toast-info .toast-timer{background:var(--accent);}
+  @keyframes timer{from{transform:scaleX(1);}to{transform:scaleX(0);}}
 
-  /* PREVIEW BADGE */
-  .preview-badge{background:#fef3c7;color:#92400e;font-size:11px;font-weight:700;padding:4px 10px;border-radius:20px;
-                  display:inline-flex;align-items:center;gap:6px;margin-bottom:10px;}
-
-  /* SEARCH */
-  .search-wrap{position:relative;flex:1;min-width:200px;}
-  .search-wrap input{padding-left:38px;}
-  .search-wrap .icon{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--muted);pointer-events:none;}
-
-  /* NOTIFICATIONS (toasts) — remplace les alert()/confirm() natifs du navigateur */
-  .toast-container{position:fixed;top:16px;right:16px;left:16px;z-index:400;display:flex;flex-direction:column;
-                    gap:10px;align-items:flex-end;pointer-events:none;}
-  @media(min-width:520px){.toast-container{left:auto;width:360px;}}
-  .toast{pointer-events:auto;width:100%;background:white;border-radius:12px;box-shadow:0 8px 30px rgba(0,0,0,.15);
-         border:1px solid var(--border);border-left:4px solid var(--muted);padding:12px 14px;display:flex;
-         align-items:flex-start;gap:10px;font-size:13px;line-height:1.4;opacity:0;transform:translateY(-8px);
-         transition:opacity .2s ease,transform .2s ease;}
-  .toast.show{opacity:1;transform:translateY(0);}
-  .toast-ok{border-left-color:var(--success);}
-  .toast-ok .icon{color:var(--success);}
-  .toast-err{border-left-color:var(--danger);}
-  .toast-err .icon{color:var(--danger);}
-  .toast-info{border-left-color:var(--accent);}
-  .toast-info .icon{color:var(--accent);}
-  .toast-msg{flex:1;padding-top:1px;}
-  .toast-close{background:none;border:none;cursor:pointer;color:var(--muted);padding:2px;flex-shrink:0;
-               border-radius:6px;display:flex;}
-  .toast-close:hover{background:var(--bg);}
-
-  /* MODALE DE CONFIRMATION — remplace confirm() natif du navigateur */
-  .confirm-overlay{display:none;position:fixed;inset:0;background:rgba(17,24,39,.55);z-index:500;
-                    align-items:center;justify-content:center;padding:20px;}
-  .confirm-overlay.open{display:flex;}
-  .confirm-modal{background:white;border-radius:16px;max-width:380px;width:100%;padding:22px;box-shadow:0 20px 60px rgba(0,0,0,.25);
-                 text-align:center;}
-  .confirm-icon{width:44px;height:44px;border-radius:50%;background:#fef2f2;color:var(--danger);display:flex;
-                align-items:center;justify-content:center;margin:0 auto 14px;}
-  .confirm-icon.info{background:#eff6ff;color:var(--accent);}
-  .confirm-message{font-size:14px;color:var(--text);line-height:1.5;margin-bottom:20px;white-space:pre-line;}
+  .confirm-overlay{display:none;position:fixed;inset:0;background:var(--overlay);z-index:500;align-items:center;justify-content:center;padding:20px;
+                   backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);}
+  .confirm-overlay.open{display:flex;animation:fadeIn .2s ease;}
+  .confirm-modal{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-xl);max-width:400px;width:100%;padding:24px;
+                 box-shadow:var(--shadow-lg);text-align:center;}
+  .confirm-overlay.open .confirm-modal{animation:modalIn .28s var(--ease);}
+  @keyframes modalIn{from{opacity:0;transform:translateY(10px) scale(.96);}to{opacity:1;transform:none;}}
+  .confirm-icon{width:48px;height:48px;border-radius:14px;background:var(--danger-soft);color:var(--danger);display:flex;
+                align-items:center;justify-content:center;margin:0 auto 16px;}
+  .confirm-icon.info{background:var(--accent-soft);color:var(--accent-text);}
+  .confirm-message{font-size:15px;color:var(--text);line-height:1.55;margin-bottom:22px;white-space:pre-line;}
   .confirm-actions{display:flex;gap:10px;}
-  .confirm-actions .btn{flex:1;justify-content:center;}
+  .confirm-actions .btn{flex:1;}
+  .confirm-actions .btn-danger{background:var(--danger);color:#fff;border-color:transparent;}
+  .confirm-actions .btn-danger:hover{filter:brightness(1.07);background:var(--danger);color:#fff;}
+
+  @media (prefers-reduced-motion: reduce){
+    *,*::before,*::after{animation-duration:.01ms !important;animation-iteration-count:1 !important;transition-duration:.01ms !important;scroll-behavior:auto !important;}
+  }
 </style>
 </head>
 <body>
 
 <!-- ══════════ ÉCRAN AUTHENTIFICATION ══════════ -->
 <div id="auth-screen">
-  <div class="lang-bar">
-    <button class="lang-btn active" id="lang-fr-auth" onclick="setLang('fr')">FR</button>
-    <button class="lang-btn" id="lang-mg-auth" onclick="setLang('mg')">MG</button>
-  </div>
-  <div class="brand">
-    <svg class="logo-mark" width="40" height="40" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
-      <rect x="1.5" y="1.5" width="37" height="37" rx="11" fill="#4f46e5"/>
-      <circle cx="14" cy="15" r="5.4" fill="#ffffff"/>
-      <circle cx="23" cy="10.5" r="6.6" fill="#ffffff"/>
-      <circle cx="29.5" cy="16.5" r="4.8" fill="#ffffff"/>
-      <path d="M21 20 V31" stroke="#ffffff" stroke-width="2.6" stroke-linecap="round"/>
-      <path d="M21 26 L16.5 30 M21 24 L26 28.5" stroke="#ffffff" stroke-width="2.2" stroke-linecap="round"/>
-    </svg>
-    <h1>Tahiry</h1>
-  </div>
-  <p class="sub"><span data-fr>Questionnaires personnalisables & entretiens</span><span data-mg>Fanontaniana azo ovaina & fanadihadiana</span></p>
-
-  <div id="login-form">
-    <div class="card">
-      <div class="card-title"><span data-fr>Connexion</span><span data-mg>Fidirana</span></div>
-      <div class="fgroup"><label><span data-fr>Email</span><span data-mg>Mailaka</span></label><input type="email" id="login-email" placeholder="toi@exemple.com" autocomplete="email"></div>
-      <div class="fgroup"><label><span data-fr>Mot de passe</span><span data-mg>Teny miafina</span></label><input type="password" id="login-password" placeholder="········" autocomplete="current-password"></div>
-      <button class="btn btn-prim" style="width:100%;justify-content:center" onclick="login()">
-        <span data-fr>Se connecter</span><span data-mg>Hiditra</span></button>
-      <button class="link-btn" style="margin-top:10px" onclick="showForgot()">
-        <span data-fr>Mot de passe oublié ?</span><span data-mg>Hadino ny teny miafina?</span></button>
+  <aside class="auth-aside" aria-hidden="true">
+    <span class="orb orb-1"></span><span class="orb orb-2"></span><span class="grid-pattern"></span>
+    <div class="brand">
+      <svg class="logo-mark" width="38" height="38" viewBox="0 0 40 40"><rect x="1.5" y="1.5" width="37" height="37" rx="11" fill="rgba(255,255,255,.16)" stroke="rgba(255,255,255,.35)"/><circle cx="14" cy="15" r="5.4" fill="#fff"/><circle cx="23" cy="10.5" r="6.6" fill="#fff"/><circle cx="29.5" cy="16.5" r="4.8" fill="#fff"/><path d="M21 20 V31" stroke="#fff" stroke-width="2.6" stroke-linecap="round"/><path d="M21 26 L16.5 30 M21 24 L26 28.5" stroke="#fff" stroke-width="2.2" stroke-linecap="round"/></svg>
+      <span class="brand-name">Tahiry</span>
     </div>
-    <p class="auth-switch">
-      <span data-fr>Pas encore de compte ?</span><span data-mg>Mbola tsy manana kaonty?</span>
-      <a onclick="showRegister()"><span data-fr>Créer un compte</span><span data-mg>Mamorona kaonty</span></a></p>
-  </div>
-
-  <div id="forgot-form" class="hidden">
-    <div class="card">
-      <div class="card-title"><span data-fr>Mot de passe oublié</span><span data-mg>Hadino ny teny miafina</span></div>
-      <p style="font-size:13px;color:var(--muted);margin-bottom:12px">
-        <span data-fr>Indique ton email, un lien de réinitialisation te sera envoyé s'il correspond à un compte.</span>
-        <span data-mg>Ampidiro ny mailakao, hisy rohy halefa aminao raha mifanaraka amin'ny kaonty.</span></p>
-      <div class="fgroup"><label><span data-fr>Email</span><span data-mg>Mailaka</span></label><input type="email" id="forgot-email" placeholder="toi@exemple.com" autocomplete="email"></div>
-      <button class="btn btn-prim" style="width:100%;justify-content:center" onclick="requestPasswordReset()">
-        <span data-fr>Envoyer le lien</span><span data-mg>Alefaso ny rohy</span></button>
+    <div class="auth-hero">
+      <h2><span data-fr>Collectez, analysez, décidez.</span><span data-mg>Angony, hadihadio, fanapahan-kevitra.</span></h2>
+      <p><span data-fr>La plateforme bilingue pour concevoir vos questionnaires, mener vos entretiens sur le terrain et piloter vos résultats.</span><span data-mg>Sehatra roa fiteny hamoronana fanontaniana, hanaovana fanadihadiana eny an-kianja ary hanaraha-maso ny vokatra.</span></p>
+      <ul class="auth-features">
+        <li style="--i:0"><span class="feat-ic"><svg class="icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></span><span><span data-fr>Questionnaires bilingues français / malagasy</span><span data-mg>Fanontaniana amin'ny teny frantsay / malagasy</span></span></li>
+        <li style="--i:1"><span class="feat-ic"><svg class="icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M1.42 9a16 16 0 0 1 21.16 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg></span><span><span data-fr>Entretiens même sans connexion internet</span><span data-mg>Fanadihadiana na tsy misy internet aza</span></span></li>
+        <li style="--i:2"><span class="feat-ic"><svg class="icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="6" y1="20" x2="6" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="18" y1="20" x2="18" y2="14"/></svg></span><span><span data-fr>Statistiques et exports PDF, Excel, CSV</span><span data-mg>Statistika sy famoahana PDF, Excel, CSV</span></span></li>
+      </ul>
     </div>
-    <p class="auth-switch">
-      <a onclick="showLogin()"><span data-fr>Retour à la connexion</span><span data-mg>Miverina any amin'ny fidirana</span></a></p>
-  </div>
+    <div class="auth-foot">© Tahiry</div>
+  </aside>
 
-  <div id="reset-form" class="hidden">
-    <div class="card">
-      <div class="card-title"><span data-fr>Nouveau mot de passe</span><span data-mg>Teny miafina vaovao</span></div>
-      <div class="fgroup"><label><span data-fr>Nouveau mot de passe (6 caractères min.)</span><span data-mg>Teny miafina vaovao (marika 6 farafahakeliny)</span></label><input type="password" id="reset-password" placeholder="········" autocomplete="new-password"></div>
-      <button class="btn btn-prim" style="width:100%;justify-content:center" onclick="submitPasswordReset()">
-        <span data-fr>Réinitialiser</span><span data-mg>Averina</span></button>
+  <main class="auth-main">
+    <div class="auth-top">
+      <div class="brand">
+        <svg class="logo-mark" width="32" height="32" viewBox="0 0 40 40"><rect x="1.5" y="1.5" width="37" height="37" rx="11" fill="#4f46e5"/><circle cx="14" cy="15" r="5.4" fill="#fff"/><circle cx="23" cy="10.5" r="6.6" fill="#fff"/><circle cx="29.5" cy="16.5" r="4.8" fill="#fff"/><path d="M21 20 V31" stroke="#fff" stroke-width="2.6" stroke-linecap="round"/><path d="M21 26 L16.5 30 M21 24 L26 28.5" stroke="#fff" stroke-width="2.2" stroke-linecap="round"/></svg>
+        <span class="brand-name">Tahiry</span>
+      </div>
+      <div class="segmented" role="group" aria-label="Langue">
+        <button type="button" class="lang-btn active" data-lang-btn="fr" onclick="setLang('fr')">FR</button>
+        <button type="button" class="lang-btn" data-lang-btn="mg" onclick="setLang('mg')">MG</button>
+      </div>
     </div>
-  </div>
 
-  <div id="register-form" class="hidden">
-    <div class="card">
-      <div class="card-title"><span data-fr>Créer un compte</span><span data-mg>Mamorona kaonty</span></div>
-      <div class="fgroup"><label><span data-fr>Nom</span><span data-mg>Anarana</span></label><input type="text" id="reg-name" placeholder="..." autocomplete="name"></div>
-      <div class="fgroup"><label><span data-fr>Email</span><span data-mg>Mailaka</span></label><input type="email" id="reg-email" placeholder="toi@exemple.com" autocomplete="email"></div>
-      <div class="fgroup"><label><span data-fr>Mot de passe (6 caractères min.)</span><span data-mg>Teny miafina (marika 6 farafahakeliny)</span></label><input type="password" id="reg-password" placeholder="········" autocomplete="new-password"></div>
-      <button class="btn btn-prim" style="width:100%;justify-content:center" onclick="register()">
-        <span data-fr>Créer mon compte</span><span data-mg>Mamorona ny kaontiko</span></button>
+    <div class="auth-center">
+      <div class="auth-card">
+        <form id="login-form" class="auth-form" novalidate onsubmit="event.preventDefault();login(this)">
+          <h1><span data-fr>Bon retour</span><span data-mg>Tongasoa indray</span></h1>
+          <p class="sub"><span data-fr>Connectez-vous pour accéder à vos questionnaires.</span><span data-mg>Midira mba hahitana ny fanontanianao.</span></p>
+          <div class="fgroup"><label for="login-email"><span data-fr>Email</span><span data-mg>Mailaka</span></label><input type="email" id="login-email" placeholder="nom@exemple.com" autocomplete="email" required></div>
+          <div class="fgroup"><label for="login-password"><span data-fr>Mot de passe</span><span data-mg>Teny miafina</span></label>
+            <div class="input-wrap"><input type="password" id="login-password" placeholder="••••••••" autocomplete="current-password" required>
+              <button type="button" class="btn btn-ghost btn-sm btn-icon pwd-toggle" onclick="togglePwd('login-password', this)" aria-label="Afficher le mot de passe"></button></div></div>
+          <div class="auth-row"><span></span>
+            <button type="button" class="link-btn" onclick="showForgot()"><span data-fr>Mot de passe oublié ?</span><span data-mg>Hadino ny teny miafina?</span></button></div>
+          <button type="submit" class="btn btn-prim btn-block"><span data-fr>Se connecter</span><span data-mg>Hiditra</span></button>
+          <p class="auth-switch"><span data-fr>Pas encore de compte ?</span><span data-mg>Mbola tsy manana kaonty?</span>
+            <a onclick="showRegister()"><span data-fr>Créer un compte</span><span data-mg>Mamorona kaonty</span></a></p>
+        </form>
+
+        <form id="forgot-form" class="auth-form hidden" novalidate onsubmit="event.preventDefault();requestPasswordReset(this)">
+          <h1><span data-fr>Mot de passe oublié</span><span data-mg>Hadino ny teny miafina</span></h1>
+          <p class="sub"><span data-fr>Indiquez votre email : un lien de réinitialisation vous sera envoyé s'il correspond à un compte.</span><span data-mg>Ampidiro ny mailakao, hisy rohy halefa aminao raha mifanaraka amin'ny kaonty.</span></p>
+          <div class="fgroup"><label for="forgot-email"><span data-fr>Email</span><span data-mg>Mailaka</span></label><input type="email" id="forgot-email" placeholder="nom@exemple.com" autocomplete="email" required></div>
+          <button type="submit" class="btn btn-prim btn-block"><span data-fr>Envoyer le lien</span><span data-mg>Alefaso ny rohy</span></button>
+          <p class="auth-switch"><a onclick="showLogin()"><span data-fr>← Retour à la connexion</span><span data-mg>← Miverina any amin'ny fidirana</span></a></p>
+        </form>
+
+        <form id="reset-form" class="auth-form hidden" novalidate onsubmit="event.preventDefault();submitPasswordReset(this)">
+          <h1><span data-fr>Nouveau mot de passe</span><span data-mg>Teny miafina vaovao</span></h1>
+          <p class="sub"><span data-fr>Choisissez un mot de passe d'au moins 6 caractères.</span><span data-mg>Misafidiana teny miafina misy marika 6 farafahakeliny.</span></p>
+          <div class="fgroup"><label for="reset-password"><span data-fr>Nouveau mot de passe</span><span data-mg>Teny miafina vaovao</span></label>
+            <div class="input-wrap"><input type="password" id="reset-password" placeholder="••••••••" autocomplete="new-password" required>
+              <button type="button" class="btn btn-ghost btn-sm btn-icon pwd-toggle" onclick="togglePwd('reset-password', this)" aria-label="Afficher le mot de passe"></button></div></div>
+          <button type="submit" class="btn btn-prim btn-block"><span data-fr>Réinitialiser</span><span data-mg>Averina</span></button>
+        </form>
+
+        <form id="register-form" class="auth-form hidden" novalidate onsubmit="event.preventDefault();register(this)">
+          <h1><span data-fr>Créer un compte</span><span data-mg>Mamorona kaonty</span></h1>
+          <p class="sub"><span data-fr>Commencez gratuitement en moins d'une minute.</span><span data-mg>Atombohy maimaim-poana ao anatin'ny iray minitra.</span></p>
+          <div class="fgroup"><label for="reg-name"><span data-fr>Nom</span><span data-mg>Anarana</span></label><input type="text" id="reg-name" placeholder="Rakoto Jean" autocomplete="name"></div>
+          <div class="fgroup"><label for="reg-email"><span data-fr>Email</span><span data-mg>Mailaka</span></label><input type="email" id="reg-email" placeholder="nom@exemple.com" autocomplete="email" required></div>
+          <div class="fgroup"><label for="reg-password"><span data-fr>Mot de passe</span><span data-mg>Teny miafina</span></label>
+            <div class="input-wrap"><input type="password" id="reg-password" placeholder="••••••••" autocomplete="new-password" required>
+              <button type="button" class="btn btn-ghost btn-sm btn-icon pwd-toggle" onclick="togglePwd('reg-password', this)" aria-label="Afficher le mot de passe"></button></div>
+            <span class="field-hint"><span data-fr>6 caractères minimum.</span><span data-mg>Marika 6 farafahakeliny.</span></span></div>
+          <button type="submit" class="btn btn-prim btn-block"><span data-fr>Créer mon compte</span><span data-mg>Mamorona ny kaontiko</span></button>
+          <p class="auth-switch"><span data-fr>Déjà un compte ?</span><span data-mg>Efa manana kaonty?</span>
+            <a onclick="showLogin()"><span data-fr>Se connecter</span><span data-mg>Hiditra</span></a></p>
+        </form>
+      </div>
     </div>
-    <p class="auth-switch">
-      <span data-fr>Déjà un compte ?</span><span data-mg>Efa manana kaonty?</span>
-      <a onclick="showLogin()"><span data-fr>Se connecter</span><span data-mg>Hiditra</span></a></p>
-  </div>
+  </main>
 </div>
 
 <!-- ══════════ APPLICATION ══════════ -->
-<div id="app-screen" class="app-shell hidden">
-  <div class="app-nav">
-  <div class="lang-bar">
-    <button class="lang-btn active" id="lang-fr-app" onclick="setLang('fr')">FR</button>
-    <button class="lang-btn" id="lang-mg-app" onclick="setLang('mg')">MG</button>
-  </div>
-  <header class="topbar">
-    <div class="brand">
-      <svg class="logo-mark" width="34" height="34" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
-        <rect x="1.5" y="1.5" width="37" height="37" rx="11" fill="#4f46e5"/>
-        <circle cx="14" cy="15" r="5.4" fill="#ffffff"/>
-        <circle cx="23" cy="10.5" r="6.6" fill="#ffffff"/>
-        <circle cx="29.5" cy="16.5" r="4.8" fill="#ffffff"/>
-        <path d="M21 20 V31" stroke="#ffffff" stroke-width="2.6" stroke-linecap="round"/>
-        <path d="M21 26 L16.5 30 M21 24 L26 28.5" stroke="#ffffff" stroke-width="2.2" stroke-linecap="round"/>
-      </svg>
-      <div><h1>Tahiry</h1><p><span data-fr>Questionnaires personnalisables & entretiens</span><span data-mg>Fanontaniana azo ovaina & fanadihadiana</span></p></div>
+<div id="app-screen" class="app hidden">
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <div class="brand">
+        <svg class="logo-mark" width="34" height="34" viewBox="0 0 40 40"><rect x="1.5" y="1.5" width="37" height="37" rx="11" fill="#4f46e5"/><circle cx="14" cy="15" r="5.4" fill="#fff"/><circle cx="23" cy="10.5" r="6.6" fill="#fff"/><circle cx="29.5" cy="16.5" r="4.8" fill="#fff"/><path d="M21 20 V31" stroke="#fff" stroke-width="2.6" stroke-linecap="round"/><path d="M21 26 L16.5 30 M21 24 L26 28.5" stroke="#fff" stroke-width="2.2" stroke-linecap="round"/></svg>
+        <div><span class="brand-name">Tahiry</span><small><span data-fr>Questionnaires & entretiens</span><span data-mg>Fanontaniana & fanadihadiana</span></small></div>
+      </div>
     </div>
-    <div class="user-chip">
-      <strong id="user-name-chip"></strong>
-      <button class="btn btn-sm" onclick="logout()">
-        <svg class="icon icon-sm" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-        <span data-fr>Déconnexion</span><span data-mg>Hivoaka</span>
-      </button>
-    </div>
-  </header>
-
-  <div class="tabs-wrap">
-    <div class="tabs">
+    <div class="nav-label"><span data-fr>Navigation</span><span data-mg>Fitetezana</span></div>
+    <nav class="tabs" aria-label="Navigation principale">
       <button class="tab active" data-tab="tab-liste" onclick="go('tab-liste')">
-        <svg class="icon icon-sm" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
-        <span data-fr>Mes questionnaires</span><span data-mg>Ny fanontanianako</span>
+        <svg class="icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>
+        <span><span data-fr>Questionnaires</span><span data-mg>Fanontaniana</span></span>
       </button>
       <button class="tab" data-tab="tab-editeur" onclick="go('tab-editeur')">
-        <svg class="icon icon-sm" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
-        <span data-fr>Éditeur</span><span data-mg>Fanovana</span>
+        <svg class="icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+        <span><span data-fr>Éditeur</span><span data-mg>Fanovana</span></span>
       </button>
       <button class="tab" data-tab="tab-entretien" onclick="go('tab-entretien')">
-        <svg class="icon icon-sm" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
-        <span data-fr>Entretien</span><span data-mg>Fanadihadiana</span>
+        <svg class="icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+        <span><span data-fr>Entretien</span><span data-mg>Fanadihadiana</span></span>
       </button>
       <button class="tab" data-tab="tab-registre" onclick="go('tab-registre')">
-        <svg class="icon icon-sm" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
-        <span data-fr>Registre</span><span data-mg>Rejisitra</span>
+        <svg class="icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3h18v18H3z"/><path d="M3 9h18"/><path d="M3 15h18"/><path d="M9 3v18"/></svg>
+        <span><span data-fr>Registre</span><span data-mg>Rejisitra</span></span>
       </button>
       <button class="tab" data-tab="tab-stats" onclick="go('tab-stats')">
-        <svg class="icon icon-sm" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="6" y1="20" x2="6" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="18" y1="20" x2="18" y2="14"/></svg>
-        <span data-fr>Statistiques</span><span data-mg>Statistika</span>
+        <svg class="icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m7 15 4-4 3 3 6-6"/></svg>
+        <span><span data-fr>Statistiques</span><span data-mg>Statistika</span></span>
       </button>
-    </div>
-  </div>
+    </nav>
 
-  <button class="btn btn-sm hidden" id="install-btn" onclick="triggerInstall()" style="width:100%;justify-content:center;margin-top:4px">
-    <svg class="icon icon-sm" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-    <span data-fr>Installer l'application</span><span data-mg>Apetraho ny rindrankajy</span>
-  </button>
-  <button class="btn btn-sm hidden" id="install-btn-ios" onclick="showIosInstallInstructions()" style="width:100%;justify-content:center;margin-top:4px">
-    <svg class="icon icon-sm" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-    <span data-fr>Installer l'application</span><span data-mg>Apetraho ny rindrankajy</span>
-  </button>
-  </div><!-- /app-nav -->
+    <div class="sidebar-foot">
+      <button class="btn btn-sm hidden js-install" onclick="triggerInstall()">
+        <svg class="icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        <span data-fr>Installer l'application</span><span data-mg>Apetraho ny rindrankajy</span>
+      </button>
+      <button class="btn btn-sm hidden js-install-ios" onclick="showIosInstallInstructions()">
+        <svg class="icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        <span data-fr>Installer l'application</span><span data-mg>Apetraho ny rindrankajy</span>
+      </button>
+      <div class="lang-row">
+        <span><span data-fr>Langue</span><span data-mg>Fiteny</span></span>
+        <div class="segmented" role="group" aria-label="Langue">
+          <button type="button" class="lang-btn active" data-lang-btn="fr" onclick="setLang('fr')">FR</button>
+          <button type="button" class="lang-btn" data-lang-btn="mg" onclick="setLang('mg')">MG</button>
+        </div>
+      </div>
+      <div class="user-card">
+        <div class="avatar js-user-avatar">?</div>
+        <div class="user-meta"><strong id="user-name-chip" class="js-user-name"></strong><span class="js-user-email"></span></div>
+        <button class="btn btn-ghost btn-sm btn-icon" onclick="logout()" title="Déconnexion" aria-label="Déconnexion">
+          <svg class="icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        </button>
+      </div>
+    </div>
+  </aside>
 
   <div class="app-main">
-  <div class="offline-banner" id="offline-banner">
-    <svg class="icon icon-sm" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="1" y1="1" x2="23" y2="23"/><path d="M16.72 11.06A10.94 10.94 0 0 1 19 12.55"/><path d="M5 12.55a10.94 10.94 0 0 1 5.17-2.39"/><path d="M10.71 5.05A16 16 0 0 1 22.58 9"/><path d="M1.42 9a15.91 15.91 0 0 1 4.7-2.88"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg>
-    <span id="offline-banner-text"></span>
-    <button class="btn btn-sm hidden" id="offline-view-btn" onclick="showOrphanedFiches()">
-      <span data-fr>Voir</span><span data-mg>Jereo</span>
-    </button>
-    <button class="btn btn-sm" id="offline-sync-btn" onclick="syncPendingFiches({manual:true})">
-      <span data-fr>Synchroniser</span><span data-mg>Ampifandraiso</span>
-    </button>
-  </div>
+    <header class="mobile-bar">
+      <div class="brand">
+        <svg class="logo-mark" width="30" height="30" viewBox="0 0 40 40"><rect x="1.5" y="1.5" width="37" height="37" rx="11" fill="#4f46e5"/><circle cx="14" cy="15" r="5.4" fill="#fff"/><circle cx="23" cy="10.5" r="6.6" fill="#fff"/><circle cx="29.5" cy="16.5" r="4.8" fill="#fff"/><path d="M21 20 V31" stroke="#fff" stroke-width="2.6" stroke-linecap="round"/><path d="M21 26 L16.5 30 M21 24 L26 28.5" stroke="#fff" stroke-width="2.2" stroke-linecap="round"/></svg>
+        <span class="brand-name">Tahiry</span>
+      </div>
+      <div class="right">
+        <button class="btn btn-ghost btn-sm btn-icon hidden js-install" onclick="triggerInstall()" aria-label="Installer l'application">
+          <svg class="icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        </button>
+        <button class="btn btn-ghost btn-sm btn-icon hidden js-install-ios" onclick="showIosInstallInstructions()" aria-label="Installer l'application">
+          <svg class="icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        </button>
+        <div class="segmented" role="group" aria-label="Langue">
+          <button type="button" class="lang-btn active" data-lang-btn="fr" onclick="setLang('fr')">FR</button>
+          <button type="button" class="lang-btn" data-lang-btn="mg" onclick="setLang('mg')">MG</button>
+        </div>
+        <button class="btn btn-ghost btn-sm btn-icon" onclick="logout()" aria-label="Déconnexion">
+          <span class="avatar js-user-avatar" style="width:30px;height:30px;font-size:12px;border-radius:9px">?</span>
+        </button>
+      </div>
+    </header>
 
-  <!-- LISTE -->
-  <div id="tab-liste" class="section active">
-    <div class="card">
-      <div class="card-title"><span data-fr>Nouveau questionnaire</span><span data-mg>Fanontaniana vaovao</span></div>
-      <div class="fgroup"><label><span data-fr>Titre</span><span data-mg>Lohateny</span></label>
-        <input type="text" id="new-q-title" placeholder="Ex: Entretien bénéficiaires 2026"></div>
-      <div class="fgroup"><label><span data-fr>Description (optionnel)</span><span data-mg>Famaritana (tsy voatery)</span></label>
-        <input type="text" id="new-q-desc"></div>
-      <button class="btn btn-prim" onclick="createQuestionnaire()">
-        <svg class="icon icon-sm" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-        <span data-fr>Créer</span><span data-mg>Mamorona</span>
+    <div class="app-content">
+    <div class="offline-banner" id="offline-banner" role="status">
+      <svg class="icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="1" y1="1" x2="23" y2="23"/><path d="M16.72 11.06A10.94 10.94 0 0 1 19 12.55"/><path d="M5 12.55a10.94 10.94 0 0 1 5.17-2.39"/><path d="M10.71 5.05A16 16 0 0 1 22.58 9"/><path d="M1.42 9a15.91 15.91 0 0 1 4.7-2.88"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg>
+      <span id="offline-banner-text"></span>
+      <button class="btn btn-sm hidden" id="offline-view-btn" onclick="showOrphanedFiches()">
+        <span data-fr>Voir</span><span data-mg>Jereo</span>
+      </button>
+      <button class="btn btn-sm" id="offline-sync-btn" onclick="syncPendingFiches({manual:true})">
+        <span data-fr>Synchroniser</span><span data-mg>Ampifandraiso</span>
       </button>
     </div>
-    <div id="q-list" class="q-list"></div>
-  </div>
 
-  <!-- EDITEUR -->
-  <div id="tab-editeur" class="section">
-    <div class="card">
-      <div class="card-title">
-        <span class="ct-left"><span data-fr>Questionnaire à éditer</span><span data-mg>Fanontaniana hovaina</span></span>
-        <span class="chip" id="editor-active-title" data-fr>aucun</span>
-      </div>
-      <p style="font-size:13px;color:var(--muted)">
-        <span data-fr>Choisis un questionnaire depuis l'onglet "Mes questionnaires" (bouton Éditer).</span>
-        <span data-mg>Misafidiana fanontaniana avy amin'ny "Ny fanontanianako" (bokotra Fanovana).</span></p>
-    </div>
-    <div id="editor-body"></div>
-  </div>
-
-  <!-- ENTRETIEN -->
-  <div id="tab-entretien" class="section">
-    <div class="card">
-      <div class="card-title"><span data-fr>Choisir un questionnaire</span><span data-mg>Misafidiana fanontaniana</span></div>
-      <div class="qselect-bar">
-        <select id="interview-q-select" onchange="onSelectActiveQuestionnaire('interview-q-select')"></select>
-        <button class="btn btn-prim" onclick="ouvrirEntretien()">
-          <svg class="icon icon-sm" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
-          <span data-fr>Commencer l'entretien</span><span data-mg>Manomboka ny fanadihadiana</span>
-        </button>
-      </div>
-      <p style="font-size:13px;color:var(--muted)">
-        <span data-fr>Le questionnaire doit contenir au moins une question (voir l'onglet Éditeur).</span>
-        <span data-mg>Tsy maintsy misy fanontaniana iray farafahakeliny (jereo ny "Fanovana").</span></p>
-    </div>
-  </div>
-
-  <!-- REGISTRE -->
-  <div id="tab-registre" class="section">
-    <div class="card">
-      <div class="card-title"><span data-fr>Choisir un questionnaire</span><span data-mg>Misafidiana fanontaniana</span></div>
-      <div class="qselect-bar">
-        <select id="registre-q-select" onchange="onSelectActiveQuestionnaire('registre-q-select')"></select>
-      </div>
-      <div class="qselect-bar">
-        <div class="search-wrap">
-          <svg class="icon icon-sm" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-          <input type="text" id="registre-search" placeholder="" oninput="onRegistreSearch(this.value)"
-                 aria-label="Rechercher dans les réponses">
+    <!-- LISTE -->
+    <section id="tab-liste" class="section active">
+      <div class="page-head">
+        <div>
+          <h1><span data-fr>Mes questionnaires</span><span data-mg>Ny fanontanianako</span></h1>
+          <p id="welcome-line"><span data-fr>Créez, gérez et lancez vos questionnaires.</span><span data-mg>Mamorona, tantano ary atombohy ny fanontanianao.</span></p>
         </div>
-        <button class="btn btn-sm" onclick="exportRegistreCSV()" aria-label="Export CSV">
-          <svg class="icon icon-sm" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-          <span>CSV</span>
-        </button>
-        <button class="btn btn-sm" onclick="exportRegistreExcel()" aria-label="Export Excel">
-          <svg class="icon icon-sm" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-          <span>Excel</span>
-        </button>
-        <button class="btn btn-sm" onclick="exportRegistrePDF()" aria-label="Export PDF">
-          <svg class="icon icon-sm" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-          <span>PDF</span>
-        </button>
       </div>
-    </div>
-    <div id="registre-body"></div>
-  </div>
+      <div id="overview-kpis"></div>
+      <div class="card">
+        <div class="card-title"><span class="ct-left"><span data-fr>Nouveau questionnaire</span><span data-mg>Fanontaniana vaovao</span></span></div>
+        <form class="create-row" novalidate onsubmit="event.preventDefault();createQuestionnaire(this)">
+          <div class="fgroup"><label for="new-q-title"><span data-fr>Titre</span><span data-mg>Lohateny</span></label>
+            <input type="text" id="new-q-title" placeholder="Ex : Entretien bénéficiaires 2026"></div>
+          <div class="fgroup"><label for="new-q-desc"><span data-fr>Description (optionnel)</span><span data-mg>Famaritana (tsy voatery)</span></label>
+            <input type="text" id="new-q-desc" placeholder="Objectif, public cible…"></div>
+          <button type="submit" class="btn btn-prim">
+            <svg class="icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            <span data-fr>Créer</span><span data-mg>Mamorona</span>
+          </button>
+        </form>
+      </div>
+      <div class="list-head">
+        <h2><span data-fr>Tous les questionnaires</span><span data-mg>Ny fanontaniana rehetra</span></h2>
+        <span class="chip" id="q-count-chip">0</span>
+      </div>
+      <div id="q-list" class="q-list"></div>
+    </section>
 
-  <!-- STATS -->
-  <div id="tab-stats" class="section">
-    <div class="card">
-      <div class="card-title"><span data-fr>Choisir un questionnaire</span><span data-mg>Misafidiana fanontaniana</span></div>
-      <div class="qselect-bar">
-        <select id="stats-q-select" onchange="onSelectActiveQuestionnaire('stats-q-select')"></select>
-        <button class="btn" onclick="exportStatsPDF()">
-          <svg class="icon icon-sm" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-          <span data-fr>Export PDF</span><span data-mg>Avoahy PDF</span>
-        </button>
+    <!-- EDITEUR -->
+    <section id="tab-editeur" class="section">
+      <div class="page-head">
+        <div>
+          <h1><span data-fr>Éditeur</span><span data-mg>Fanovana</span></h1>
+          <p><span data-fr>Construisez la structure de votre questionnaire.</span><span data-mg>Ataovy ny firafitry ny fanontanianao.</span></p>
+        </div>
+        <span class="chip chip-accent" id="editor-active-title">—</span>
       </div>
-    </div>
-    <div id="stats-body"></div>
-  </div>
+      <div id="editor-body">
+        <div class="empty"><div class="empty-ic"><svg class="icon" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></div>
+          <strong><span data-fr>Aucun questionnaire sélectionné</span><span data-mg>Tsy misy fanontaniana voafidy</span></strong>
+          <div><span data-fr>Choisissez un questionnaire dans « Questionnaires » puis cliquez sur Éditer.</span><span data-mg>Misafidiana fanontaniana ao amin'ny « Fanontaniana » ary tsindrio ny Ovay.</span></div>
+          <button class="btn btn-sm" onclick="go('tab-liste')"><span data-fr>Voir mes questionnaires</span><span data-mg>Hijery ny fanontanianako</span></button>
+        </div>
+      </div>
+    </section>
 
-  <!-- ENTRETIEN — page dédiée (plus de modale flottante) -->
-  <div id="tab-interview-session" class="section interview-page">
-    <button class="btn back-btn" onclick="fermerEntretien()">
-      <svg class="icon icon-sm" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
-      <span data-fr>Retour</span><span data-mg>Miverina</span>
-    </button>
-    <div class="interview-modal">
-      <div class="progress-bar"><div class="progress-fill" id="iprogress" style="width:0%"></div></div>
-      <div class="interview-header">
-        <h2 id="iblock-title"><span data-fr>Entretien</span><span data-mg>Fanadihadiana</span></h2>
-        <span class="interview-progress" id="iprogress-txt">1 / 1</span>
+    <!-- ENTRETIEN -->
+    <section id="tab-entretien" class="section">
+      <div class="page-head">
+        <div>
+          <h1><span data-fr>Entretien</span><span data-mg>Fanadihadiana</span></h1>
+          <p><span data-fr>Menez un entretien pas à pas, même hors-ligne.</span><span data-mg>Ataovy dingana tsikelikely ny fanadihadiana, na tsy misy internet aza.</span></p>
+        </div>
       </div>
-      <div class="interview-body" id="ibody"></div>
-      <div class="interview-footer">
-        <button class="btn" id="ibtn-prev" onclick="iStep(-1)">
-          <svg class="icon icon-sm" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
-          <span data-fr>Précédent</span><span data-mg>Teo aloha</span>
-        </button>
-        <button class="btn btn-prim" id="ibtn-next" onclick="iStep(1)">
-          <span data-fr>Suivant</span><span data-mg>Manaraka</span>
-          <svg class="icon icon-sm" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
-        </button>
+      <div class="card">
+        <div class="card-title"><span class="ct-left"><span data-fr>Choisir un questionnaire</span><span data-mg>Misafidiana fanontaniana</span></span></div>
+        <div class="qselect-bar">
+          <select id="interview-q-select" aria-label="Questionnaire" onchange="onSelectActiveQuestionnaire('interview-q-select')"></select>
+          <button class="btn btn-prim" onclick="ouvrirEntretien()">
+            <svg class="icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="6 3 20 12 6 21 6 3"/></svg>
+            <span data-fr>Commencer l'entretien</span><span data-mg>Manomboka ny fanadihadiana</span>
+          </button>
+        </div>
+        <p class="field-hint" style="margin-top:12px">
+          <span data-fr>Le questionnaire doit contenir au moins une question (voir l'Éditeur).</span>
+          <span data-mg>Tsy maintsy misy fanontaniana iray farafahakeliny (jereo ny "Fanovana").</span></p>
       </div>
-    </div>
-  </div>
+    </section>
+
+    <!-- REGISTRE -->
+    <section id="tab-registre" class="section">
+      <div class="page-head">
+        <div>
+          <h1><span data-fr>Registre des réponses</span><span data-mg>Rejisitry ny valiny</span></h1>
+          <p><span data-fr>Consultez, modifiez et exportez les réponses collectées.</span><span data-mg>Jereo, ovay ary avoahy ny valiny voaangona.</span></p>
+        </div>
+      </div>
+      <div class="card">
+        <div class="qselect-bar">
+          <select id="registre-q-select" aria-label="Questionnaire" onchange="onSelectActiveQuestionnaire('registre-q-select')"></select>
+        </div>
+        <div class="qselect-bar">
+          <div class="search-wrap">
+            <svg class="icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input type="search" id="registre-search" placeholder="Rechercher…" oninput="onRegistreSearch(this.value)" aria-label="Rechercher dans les réponses">
+          </div>
+          <div class="export-group">
+            <button class="btn btn-sm" onclick="exportRegistreCSV()" aria-label="Export CSV">
+              <svg class="icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg><span>CSV</span>
+            </button>
+            <button class="btn btn-sm" onclick="exportRegistreExcel()" aria-label="Export Excel">
+              <svg class="icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg><span>Excel</span>
+            </button>
+            <button class="btn btn-sm" onclick="exportRegistrePDF()" aria-label="Export PDF">
+              <svg class="icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg><span>PDF</span>
+            </button>
+          </div>
+        </div>
+      </div>
+      <div id="registre-body"></div>
+    </section>
+
+    <!-- STATS -->
+    <section id="tab-stats" class="section">
+      <div class="page-head">
+        <div>
+          <h1><span data-fr>Statistiques</span><span data-mg>Statistika</span></h1>
+          <p><span data-fr>Visualisez les tendances de vos réponses.</span><span data-mg>Jereo ny fironan'ny valinao.</span></p>
+        </div>
+      </div>
+      <div class="card">
+        <div class="qselect-bar">
+          <select id="stats-q-select" aria-label="Questionnaire" onchange="onSelectActiveQuestionnaire('stats-q-select')"></select>
+          <button class="btn" onclick="exportStatsPDF()">
+            <svg class="icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            <span data-fr>Export PDF</span><span data-mg>Avoahy PDF</span>
+          </button>
+        </div>
+      </div>
+      <div id="stats-body"></div>
+    </section>
+
+    <!-- ENTRETIEN — page dédiée -->
+    <section id="tab-interview-session" class="section interview-page">
+      <button class="btn btn-ghost back-btn" onclick="fermerEntretien()">
+        <svg class="icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+        <span data-fr>Quitter l'entretien</span><span data-mg>Hiala amin'ny fanadihadiana</span>
+      </button>
+      <div class="interview-modal">
+        <div class="interview-header">
+          <h2 id="iblock-title"><span data-fr>Entretien</span><span data-mg>Fanadihadiana</span></h2>
+          <span class="interview-progress" id="iprogress-txt">1 / 1</span>
+        </div>
+        <div class="progress-bar"><div class="progress-fill" id="iprogress" style="width:0%"></div></div>
+        <div class="interview-body" id="ibody"></div>
+        <div class="interview-footer">
+          <button class="btn" id="ibtn-prev" onclick="iStep(-1)">
+            <svg class="icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+            <span data-fr>Précédent</span><span data-mg>Teo aloha</span>
+          </button>
+          <button class="btn btn-prim" id="ibtn-next" onclick="iStep(1)">
+            <span data-fr>Suivant</span><span data-mg>Manaraka</span>
+            <svg class="icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+          </button>
+        </div>
+      </div>
+    </section>
+    </div><!-- /app-content -->
   </div><!-- /app-main -->
-</div><!-- /app-shell -->
+</div><!-- /app -->
 
-<!-- ══════════ NOTIFICATIONS (remplace alert() natif) ══════════ -->
-<div class="toast-container" id="toast-container"></div>
+<!-- ══════════ NOTIFICATIONS ══════════ -->
+<div class="toast-container" id="toast-container" aria-live="polite"></div>
 
-<!-- ══════════ CONFIRMATION (remplace confirm() natif) ══════════ -->
-<div class="confirm-overlay" id="confirm-overlay">
+<!-- ══════════ CONFIRMATION ══════════ -->
+<div class="confirm-overlay" id="confirm-overlay" role="dialog" aria-modal="true">
   <div class="confirm-modal">
     <div class="confirm-icon" id="confirm-icon"></div>
     <p class="confirm-message" id="confirm-message"></p>
@@ -571,24 +861,28 @@
 </div>
 
 <!-- ══════════ RÉPONSES HORS-LIGNE ORPHELINES ══════════ -->
-<div class="confirm-overlay" id="orphan-overlay">
-  <div class="confirm-modal" style="max-width:480px;text-align:left">
-    <div class="card-title" style="margin-bottom:14px">
+<div class="confirm-overlay" id="orphan-overlay" role="dialog" aria-modal="true">
+  <div class="confirm-modal" style="max-width:500px;text-align:left">
+    <div class="card-title">
       <span data-fr>Réponses hors-ligne non synchronisables</span><span data-mg>Valiny tsy voafandray</span>
     </div>
-    <p style="font-size:13px;color:var(--muted);margin-bottom:14px">
-      <span data-fr>Le questionnaire visé par ces réponses n'existe plus (supprimé, ou recréé). Tu peux copier leurs données avant de les supprimer, ou les supprimer directement.</span>
+    <p class="field-hint" style="margin-bottom:16px;font-size:14px">
+      <span data-fr>Le questionnaire visé par ces réponses n'existe plus (supprimé, ou recréé). Vous pouvez copier leurs données avant de les supprimer, ou les supprimer directement.</span>
       <span data-mg>Efa tsy misy ny fanontaniana kendren'ireto valiny ireto. Azonao adika ny angona alohan'ny hamafana azy, na fafao mivantana.</span>
     </p>
     <div id="orphan-list" style="display:flex;flex-direction:column;gap:10px;max-height:50vh;overflow-y:auto"></div>
     <div class="row-actions">
-      <button class="btn btn-prim" style="flex:1;justify-content:center" onclick="document.getElementById('orphan-overlay').classList.remove('open')">
+      <button class="btn btn-prim" onclick="document.getElementById('orphan-overlay').classList.remove('open')">
         <span data-fr>Fermer</span><span data-mg>Hidio</span>
       </button>
     </div>
   </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script>
 // ─────────────────────────────────────────────
 // ICONES SVG (aucun emoji dans le code)
@@ -616,13 +910,96 @@ const ICONS = {
   camera: '<path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2Z"/><circle cx="12" cy="13" r="4"/>',
   mapPin: '<path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0Z"/><circle cx="12" cy="10" r="3"/>',
   info:   '<circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/>',
-  download: '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>'
+  download: '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>',
+  eyeOff: '<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><path d="M14.12 14.12a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/>',
+  play:   '<polygon points="6 3 20 12 6 21 6 3"/>',
+  layers: '<polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/>',
+  users:  '<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>',
+  help:   '<circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/>',
+  clock:  '<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>',
+  chart:  '<path d="M3 3v18h18"/><path d="m7 15 4-4 3 3 6-6"/>'
 };
 function icon(name, size) {
   size = size || 16;
-  return '<svg class="icon icon-sm" width="' + size + '" height="' + size + '" viewBox="0 0 24 24" fill="none" ' +
+  return '<svg class="icon" width="' + size + '" height="' + size + '" viewBox="0 0 24 24" fill="none" ' +
          'stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + (ICONS[name] || '') + '</svg>';
 }
+
+// Bloc "état vide" homogène dans toute l'application
+function emptyState(iconName, title, text, actionHtml) {
+  return '<div class="empty"><div class="empty-ic">' + icon(iconName, 26) + '</div>' +
+    (title ? '<strong>' + title + '</strong>' : '') + '<div>' + (text || '') + '</div>' + (actionHtml || '') + '</div>';
+}
+
+// Squelettes de chargement (évite les écrans vides pendant les requêtes)
+function skeletonCards(n) {
+  let html = '';
+  for (let i = 0; i < n; i++) {
+    html += '<div class="sk-card"><div style="display:flex;gap:14px;align-items:center">' +
+      '<div class="skeleton" style="width:42px;height:42px;border-radius:12px"></div>' +
+      '<div style="flex:1;display:flex;flex-direction:column;gap:8px"><div class="skeleton" style="height:14px;width:55%"></div>' +
+      '<div class="skeleton" style="height:11px;width:35%"></div></div></div>' +
+      '<div class="skeleton" style="height:34px;width:100%"></div></div>';
+  }
+  return html;
+}
+
+// Chaîne utilisable sans risque dans un attribut onclick="fn(...)" (gère apostrophes et guillemets).
+// L'ancien escapeAttr() produisait &#39; que le navigateur re-décode en ' AVANT d'exécuter le JS :
+// une option comme "Aujourd'hui" cassait le bouton.
+function jsArg(v) { return escapeHtml(JSON.stringify(String(v ?? ''))); }
+
+// Désactive un bouton et affiche un indicateur de chargement pendant une action asynchrone
+async function withBusy(btn, fn) {
+  if (btn && btn.classList.contains('is-loading')) return;
+  if (btn) { btn.classList.add('is-loading'); btn.disabled = true; }
+  try { return await fn(); }
+  finally { if (btn) { btn.classList.remove('is-loading'); btn.disabled = false; } }
+}
+function submitBtn(form) { return form ? form.querySelector('[type=submit]') : null; }
+
+// Animation de comptage des indicateurs chiffrés
+function animateCounts(root) {
+  (root || document).querySelectorAll('[data-count]').forEach(el => {
+    const target = parseInt(el.dataset.count, 10) || 0;
+    if (target === 0 || window.matchMedia('(prefers-reduced-motion: reduce)').matches) { el.textContent = target; return; }
+    const start = performance.now(), dur = 700;
+    const step = (now) => {
+      const p = Math.min(1, (now - start) / dur);
+      el.textContent = Math.round(target * (1 - Math.pow(1 - p, 3)));
+      if (p < 1) requestAnimationFrame(step);
+    };
+    requestAnimationFrame(step);
+  });
+}
+
+function togglePwd(inputId, btn) {
+  const input = document.getElementById(inputId);
+  const show = input.type === 'password';
+  input.type = show ? 'text' : 'password';
+  btn.innerHTML = icon(show ? 'eyeOff' : 'eye', 17);
+  btn.setAttribute('aria-label', show ? 'Masquer le mot de passe' : 'Afficher le mot de passe');
+}
+document.querySelectorAll('.pwd-toggle').forEach(b => { b.innerHTML = icon('eye', 17); });
+
+function initials(name) {
+  const parts = String(name || '').trim().split(/[\s@._-]+/).filter(Boolean);
+  return ((parts[0] || '?')[0] + (parts[1] ? parts[1][0] : '')).toUpperCase();
+}
+
+// Couleur stable par questionnaire (pastille avec initiale)
+const BADGE_GRADIENTS = [
+  ['#6366f1', '#8b5cf6'], ['#0ea5e9', '#22d3ee'], ['#10b981', '#34d399'], ['#f59e0b', '#fb923c'],
+  ['#ec4899', '#f472b6'], ['#14b8a6', '#2dd4bf'], ['#8b5cf6', '#c084fc'], ['#ef4444', '#f97316']
+];
+function badgeStyle(seed) {
+  let h = 0;
+  for (const c of String(seed)) h = (h * 31 + c.charCodeAt(0)) >>> 0;
+  const [a, b] = BADGE_GRADIENTS[h % BADGE_GRADIENTS.length];
+  return 'background:linear-gradient(135deg,' + a + ',' + b + ')';
+}
+
+function cssVar(name) { return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); }
 
 // ─────────────────────────────────────────────
 // LANGUE (FR / Malagasy) — s'applique à toute l'interface
@@ -632,8 +1009,12 @@ function setLang(lang) {
   currentLang = lang;
   document.documentElement.lang = lang === 'mg' ? 'mg' : 'fr';
   document.body.classList.toggle('mg', lang === 'mg');
-  ['lang-fr-auth', 'lang-fr-app'].forEach(id => document.getElementById(id) && document.getElementById(id).classList.toggle('active', lang === 'fr'));
-  ['lang-mg-auth', 'lang-mg-app'].forEach(id => document.getElementById(id) && document.getElementById(id).classList.toggle('active', lang === 'mg'));
+  document.querySelectorAll('[data-lang-btn]').forEach(b => b.classList.toggle('active', b.dataset.langBtn === lang));
+  try { localStorage.setItem('tahiry-lang', lang); } catch (e) { /* stockage indisponible : sans importance */ }
+  const search = document.getElementById('registre-search');
+  if (search) search.placeholder = t('Rechercher une réponse, une référence…', 'Hikaroka valiny, laharana…');
+  if (currentUser && document.getElementById('tab-liste').classList.contains('active')) renderQuestionnaireList();
+  updateOfflineBanner();
   if (activeQuestionnaire) {
     if (document.getElementById('tab-editeur').classList.contains('active')) renderEditor();
     if (document.getElementById('tab-registre').classList.contains('active')) renderRegistre();
@@ -921,13 +1302,15 @@ function showToast(type, msg, duration) {
   const el = document.createElement('div');
   el.className = 'toast toast-' + type;
   el.id = id;
-  el.innerHTML = icon(type === 'ok' ? 'check' : type === 'info' ? 'info' : 'warn', 18) +
+  const d = duration ?? (type === 'ok' ? 3500 : 6000);
+  el.setAttribute('role', type === 'err' ? 'alert' : 'status');
+  el.innerHTML = '<span class="toast-ic">' + icon(type === 'ok' ? 'check' : type === 'info' ? 'info' : 'warn', 17) + '</span>' +
     '<span class="toast-msg"></span>' +
-    '<button class="toast-close" onclick="dismissToast(\'' + id + '\')" aria-label="Fermer">' + icon('x', 14) + '</button>';
+    '<button class="toast-close" onclick="dismissToast(\'' + id + '\')" aria-label="Fermer">' + icon('x', 14) + '</button>' +
+    (d > 0 ? '<span class="toast-timer" style="animation-duration:' + d + 'ms"></span>' : '');
   el.querySelector('.toast-msg').textContent = msg; // textContent : pas d'injection HTML depuis les messages d'erreur
   container.appendChild(el);
-  requestAnimationFrame(() => el.classList.add('show'));
-  const d = duration ?? (type === 'ok' ? 3500 : 6000);
+  requestAnimationFrame(() => requestAnimationFrame(() => el.classList.add('show')));
   if (d > 0) setTimeout(() => dismissToast(id), d);
   return id;
 }
@@ -961,14 +1344,18 @@ function showConfirm(message, opts = {}) {
       okBtn.removeEventListener('click', onOk);
       cancelBtn.removeEventListener('click', onCancel);
       overlay.removeEventListener('click', onOverlay);
+      document.removeEventListener('keydown', onKey);
       resolve(result);
     }
     function onOk() { cleanup(true); }
     function onCancel() { cleanup(false); }
     function onOverlay(e) { if (e.target === overlay) cleanup(false); }
+    function onKey(e) { if (e.key === 'Escape') cleanup(false); }
     okBtn.addEventListener('click', onOk);
     cancelBtn.addEventListener('click', onCancel);
     overlay.addEventListener('click', onOverlay);
+    document.addEventListener('keydown', onKey);
+    setTimeout(() => cancelBtn.focus(), 50);
   });
 }
 
@@ -995,52 +1382,79 @@ function checkResetTokenInUrl() {
   }
 }
 
-async function requestPasswordReset() {
-  try {
-    const email = document.getElementById('forgot-email').value.trim();
-    if (!email) { showErr(t('Email requis.', 'Ilaina ny mailaka.')); return; }
-    const res = await api('/auth/forgot-password', { method: 'POST', body: { email } });
-    showOk(res.message || t('Si un compte existe, un email a été envoyé.', 'Raha misy kaonty, dia nalefa ny mailaka.'));
-  } catch (e) { showErr(e.message); }
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+async function requestPasswordReset(form) {
+  const email = document.getElementById('forgot-email').value.trim();
+  if (!EMAIL_RE.test(email)) { showErr(t('Saisis une adresse email valide.', 'Ampidiro mailaka marina.')); return; }
+  await withBusy(submitBtn(form), async () => {
+    try {
+      const res = await api('/auth/forgot-password', { method: 'POST', body: { email } });
+      showOk(res.message || t('Si un compte existe, un email a été envoyé.', 'Raha misy kaonty, dia nalefa ny mailaka.'));
+    } catch (e) { showErr(e.message); }
+  });
 }
 
-async function submitPasswordReset() {
-  try {
-    const password = document.getElementById('reset-password').value;
-    if (!resetTokenFromUrl) { showErr(t('Lien invalide.', 'Diso ny rohy.')); return; }
-    if (password.length < 6) { showErr(t('Le mot de passe doit contenir au moins 6 caractères.', 'Tsy maintsy misy marika 6 farafahakeliny ny teny miafina.')); return; }
-    await api('/auth/reset-password', { method: 'POST', body: { token: resetTokenFromUrl, password } });
-    resetTokenFromUrl = null;
-    showLogin();
-    showOk(t('Mot de passe mis à jour. Tu peux te connecter.', 'Voavaozina ny teny miafina. Azonao atao ny miditra.'));
-  } catch (e) { showErr(e.message); }
+async function submitPasswordReset(form) {
+  const password = document.getElementById('reset-password').value;
+  if (!resetTokenFromUrl) { showErr(t('Lien invalide.', 'Diso ny rohy.')); return; }
+  if (password.length < 6) { showErr(t('Le mot de passe doit contenir au moins 6 caractères.', 'Tsy maintsy misy marika 6 farafahakeliny ny teny miafina.')); return; }
+  await withBusy(submitBtn(form), async () => {
+    try {
+      await api('/auth/reset-password', { method: 'POST', body: { token: resetTokenFromUrl, password } });
+      resetTokenFromUrl = null;
+      showLogin();
+      showOk(t('Mot de passe mis à jour. Tu peux te connecter.', 'Voavaozina ny teny miafina. Azonao atao ny miditra.'));
+    } catch (e) { showErr(e.message); }
+  });
 }
 
-async function login() {
-  try {
-    const email = document.getElementById('login-email').value.trim();
-    const password = document.getElementById('login-password').value;
-    const user = await api('/auth/login', { method: 'POST', body: { email, password } });
-    onAuthSuccess(user);
-  } catch (e) { showErr(e.message); }
+async function login(form) {
+  const email = document.getElementById('login-email').value.trim();
+  const password = document.getElementById('login-password').value;
+  if (!email || !password) { showErr(t('Email et mot de passe requis.', 'Ilaina ny mailaka sy ny teny miafina.')); return; }
+  await withBusy(submitBtn(form), async () => {
+    try {
+      const user = await api('/auth/login', { method: 'POST', body: { email, password } });
+      idbCacheSet('session:user', user);
+      document.getElementById('login-password').value = '';
+      onAuthSuccess(user);
+    } catch (e) { showErr(e.message); }
+  });
 }
 
-async function register() {
-  try {
-    const name = document.getElementById('reg-name').value.trim();
-    const email = document.getElementById('reg-email').value.trim();
-    const password = document.getElementById('reg-password').value;
-    const user = await api('/auth/register', { method: 'POST', body: { name, email, password } });
-    onAuthSuccess(user);
-  } catch (e) { showErr(e.message); }
+async function register(form) {
+  const name = document.getElementById('reg-name').value.trim();
+  const email = document.getElementById('reg-email').value.trim();
+  const password = document.getElementById('reg-password').value;
+  if (!EMAIL_RE.test(email)) { showErr(t('Saisis une adresse email valide.', 'Ampidiro mailaka marina.')); return; }
+  if (password.length < 6) { showErr(t('Le mot de passe doit contenir au moins 6 caractères.', 'Tsy maintsy misy marika 6 farafahakeliny ny teny miafina.')); return; }
+  await withBusy(submitBtn(form), async () => {
+    try {
+      const user = await api('/auth/register', { method: 'POST', body: { name, email, password } });
+      idbCacheSet('session:user', user);
+      document.getElementById('reg-password').value = '';
+      onAuthSuccess(user);
+    } catch (e) { showErr(e.message); }
+  });
 }
 
 async function logout() {
   try { await api('/auth/logout', { method: 'POST' }); } catch (e) { /* best-effort : on se déconnecte localement même sans réseau */ }
   currentUser = null;
   await idbCacheSet('session:user', null);
+  // Réinitialise l'état en mémoire : sans ça, l'utilisateur suivant sur le même appareil
+  // voyait les questionnaires et réponses du précédent tant que la page n'était pas rechargée.
+  questionnaires = []; activeQuestionnaire = null; currentFiches = []; currentAllFiches = [];
+  chartInstances.forEach(c => c.destroy()); chartInstances = [];
+  ['q-list', 'registre-body', 'stats-body', 'overview-kpis'].forEach(id => { document.getElementById(id).innerHTML = ''; });
+  questionnairesLoadedOnce = false;
+  document.getElementById('editor-body').innerHTML = EDITOR_EMPTY_HTML;
+  document.getElementById('editor-active-title').textContent = '—';
+  go('tab-liste', { silent: true });
   document.getElementById('app-screen').classList.add('hidden');
   document.getElementById('auth-screen').classList.remove('hidden');
+  showLogin();
 }
 
 function onAuthSuccess(user) {
@@ -1048,7 +1462,10 @@ function onAuthSuccess(user) {
   sessionExpiredForSync = false;
   document.getElementById('auth-screen').classList.add('hidden');
   document.getElementById('app-screen').classList.remove('hidden');
-  document.getElementById('user-name-chip').textContent = user.name || user.email;
+  const display = user.name || user.email;
+  document.querySelectorAll('.js-user-name').forEach(el => { el.textContent = display; });
+  document.querySelectorAll('.js-user-email').forEach(el => { el.textContent = user.name ? user.email : ''; });
+  document.querySelectorAll('.js-user-avatar').forEach(el => { el.textContent = initials(display); });
   loadQuestionnaires();
   syncPendingFiches();
 }
@@ -1075,9 +1492,12 @@ async function checkSession() {
 // ─────────────────────────────────────────────
 // NAVIGATION ONGLETS
 // ─────────────────────────────────────────────
-function go(tabId) {
+function go(tabId, opts = {}) {
   document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tabId));
   document.querySelectorAll('.section').forEach(s => s.classList.toggle('active', s.id === tabId));
+  document.body.classList.toggle('in-interview', tabId === 'tab-interview-session');
+  window.scrollTo(0, 0);
+  if (opts.silent) return;
   if (tabId === 'tab-liste') loadQuestionnaires();
   if (tabId === 'tab-entretien') fillQuestionnaireSelect('interview-q-select');
   if (tabId === 'tab-registre') fillQuestionnaireSelect('registre-q-select').then(() => loadFiches());
@@ -1088,9 +1508,14 @@ function go(tabId) {
 // ─────────────────────────────────────────────
 // LISTE DES QUESTIONNAIRES
 // ─────────────────────────────────────────────
+let questionnairesLoadedOnce = false;
 async function loadQuestionnaires() {
+  if (!questionnairesLoadedOnce) {
+    document.getElementById('q-list').innerHTML = skeletonCards(4);
+  }
   try {
     questionnaires = await api('/questionnaires');
+    questionnairesLoadedOnce = true;
     idbCacheSet('questionnaires:list', questionnaires);
     renderQuestionnaireList();
   } catch (e) {
@@ -1098,54 +1523,87 @@ async function loadQuestionnaires() {
       const cached = await idbCacheGet('questionnaires:list');
       if (cached) { questionnaires = cached; renderQuestionnaireList(); return; }
     }
+    renderQuestionnaireList(); // remplace le squelette de chargement
     showErr(e.message);
   }
 }
 
+function renderOverviewKpis() {
+  const totalRep = questionnaires.reduce((s, q) => s + (q.nbReponses || 0), 0);
+  const totalQ = questionnaires.reduce((s, q) => s + (q.nbQuestions || 0), 0);
+  const el = document.getElementById('overview-kpis');
+  el.innerHTML = `<div class="stats-grid stagger">
+    <div class="stat-card" style="--i:0"><div class="stat-ic">${icon('layers', 18)}</div>
+      <div><div class="stat-num" data-count="${questionnaires.length}">0</div><div class="stat-label">${t('Questionnaires', 'Fanontaniana')}</div></div></div>
+    <div class="stat-card" style="--i:1"><div class="stat-ic">${icon('users', 18)}</div>
+      <div><div class="stat-num" data-count="${totalRep}">0</div><div class="stat-label">${t('Réponses collectées', 'Valiny voaangona')}</div></div></div>
+    <div class="stat-card" style="--i:2"><div class="stat-ic">${icon('help', 18)}</div>
+      <div><div class="stat-num" data-count="${totalQ}">0</div><div class="stat-label">${t('Questions au total', 'Fanontaniana rehetra')}</div></div></div>
+  </div>`;
+  animateCounts(el);
+}
+
 function renderQuestionnaireList() {
   const el = document.getElementById('q-list');
+  document.getElementById('q-count-chip').textContent = questionnaires.length;
+  renderOverviewKpis();
   if (!questionnaires.length) {
-    el.innerHTML = '<div class="empty">' + icon('inbox', 28) + '<div>' +
-      t('Aucun questionnaire pour l\'instant. Crée le premier ci-dessus.', 'Mbola tsy misy fanontaniana. Mamoronà ny voalohany eo ambony.') +
-      '</div></div>';
+    el.innerHTML = emptyState('inbox',
+      t('Aucun questionnaire pour l\'instant', 'Mbola tsy misy fanontaniana'),
+      t('Donnez un titre ci-dessus pour créer votre premier questionnaire.', 'Omeo lohateny eo ambony mba hamoronana ny fanontanianao voalohany.'));
+    el.firstChild.style.gridColumn = '1 / -1';
     return;
   }
-  el.innerHTML = questionnaires.map(q => `
-    <div class="q-item">
-      <div class="q-info">
-        <h3>${escapeHtml(q.title)}</h3>
-        <p>${q.nbQuestions} ${t('question(s)', 'fanontaniana')} · ${q.nbReponses} ${t('réponse(s)', 'valiny')}${q.description ? ' · ' + escapeHtml(q.description) : ''}</p>
+  el.classList.add('stagger');
+  el.innerHTML = questionnaires.map((q, idx) => `
+    <article class="q-item" style="--i:${Math.min(idx, 12)}">
+      <div class="q-top">
+        <div class="q-badge" style="${badgeStyle(q._id)}">${escapeHtml((q.title || '?').trim().charAt(0).toUpperCase())}</div>
+        <div class="q-info">
+          <h3 title="${escapeAttr(q.title)}">${escapeHtml(q.title)}</h3>
+          <div class="q-desc">${q.description ? escapeHtml(q.description) : `<span style="color:var(--subtle)">${t('Aucune description', 'Tsy misy famaritana')}</span>`}</div>
+        </div>
+      </div>
+      <div class="q-meta">
+        <span class="chip">${icon('help', 13)} ${q.nbQuestions} ${t('question(s)', 'fanontaniana')}</span>
+        <span class="chip ${q.nbReponses ? 'chip-accent' : ''}">${icon('users', 13)} ${q.nbReponses} ${t('réponse(s)', 'valiny')}</span>
+        ${q.updatedAt ? `<span class="chip">${icon('clock', 13)} ${new Date(q.updatedAt).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' })}</span>` : ''}
       </div>
       <div class="q-actions">
-        <button class="btn btn-sm" onclick="openForEdit('${q._id}')">${icon('edit')} <span>${t('Éditer', 'Ovay')}</span></button>
-        <button class="btn btn-sm" onclick="openForInterview('${q._id}')">${icon('mic')} <span>${t('Entretien', 'Fanadihadiana')}</span></button>
-        <button class="btn btn-sm" onclick="openForRegistre('${q._id}')">${icon('grid')} <span>${t('Registre', 'Rejisitra')}</span></button>
-        <button class="btn btn-sm" onclick="duplicateQuestionnaire('${q._id}')" aria-label="Dupliquer">${icon('copy')}</button>
-        <button class="btn btn-sm btn-danger" onclick="deleteQuestionnaire('${q._id}')" aria-label="Supprimer">${icon('trash')}</button>
+        <button class="btn btn-sm btn-prim" onclick="openForInterview('${q._id}')">${icon('play', 14)} <span>${t('Entretien', 'Fanadihadiana')}</span></button>
+        <button class="btn btn-sm" onclick="openForEdit('${q._id}')">${icon('edit', 14)} <span>${t('Éditer', 'Ovay')}</span></button>
+        <button class="btn btn-sm" onclick="openForRegistre('${q._id}')">${icon('grid', 14)} <span>${t('Registre', 'Rejisitra')}</span></button>
+        <span class="spacer"></span>
+        <button class="btn btn-sm btn-ghost btn-icon" onclick="duplicateQuestionnaire('${q._id}', this)" title="${t('Dupliquer', 'Adikao')}" aria-label="${t('Dupliquer', 'Adikao')}">${icon('copy')}</button>
+        <button class="btn btn-sm btn-ghost btn-icon btn-danger" onclick="deleteQuestionnaire('${q._id}')" title="${t('Supprimer', 'Fafao')}" aria-label="${t('Supprimer', 'Fafao')}">${icon('trash')}</button>
       </div>
-    </div>
+    </article>
   `).join('');
 }
 
-async function duplicateQuestionnaire(id) {
-  try {
-    await api('/questionnaires/' + id + '/duplicate', { method: 'POST' });
-    showOk(t('Questionnaire dupliqué.', 'Voadika ny fanontaniana.'));
-    loadQuestionnaires();
-  } catch (e) { showErr(e.message); }
+async function duplicateQuestionnaire(id, btn) {
+  await withBusy(btn, async () => {
+    try {
+      await api('/questionnaires/' + id + '/duplicate', { method: 'POST' });
+      showOk(t('Questionnaire dupliqué.', 'Voadika ny fanontaniana.'));
+      await loadQuestionnaires();
+    } catch (e) { showErr(e.message); }
+  });
 }
 
-async function createQuestionnaire() {
+async function createQuestionnaire(form) {
   const title = document.getElementById('new-q-title').value.trim();
   const description = document.getElementById('new-q-desc').value.trim();
-  if (!title) { showErr(t('Le titre est requis.', 'Ilaina ny lohateny.')); return; }
-  try {
-    await api('/questionnaires', { method: 'POST', body: { title, description } });
-    document.getElementById('new-q-title').value = '';
-    document.getElementById('new-q-desc').value = '';
-    showOk(t('Questionnaire créé.', 'Voaforona ny fanontaniana.'));
-    loadQuestionnaires();
-  } catch (e) { showErr(e.message); }
+  if (!title) { showErr(t('Le titre est requis.', 'Ilaina ny lohateny.')); document.getElementById('new-q-title').focus(); return; }
+  await withBusy(submitBtn(form), async () => {
+    try {
+      await api('/questionnaires', { method: 'POST', body: { title, description } });
+      document.getElementById('new-q-title').value = '';
+      document.getElementById('new-q-desc').value = '';
+      showOk(t('Questionnaire créé.', 'Voaforona ny fanontaniana.'));
+      await loadQuestionnaires();
+    } catch (e) { showErr(e.message); }
+  });
 }
 
 async function deleteQuestionnaire(id) {
@@ -1172,9 +1630,7 @@ async function openForRegistre(id) {
   regPage = 1; regSearch = '';
   const searchInput = document.getElementById('registre-search');
   if (searchInput) searchInput.value = '';
-  go('tab-registre');
-  document.getElementById('registre-q-select').value = id;
-  loadFiches();
+  go('tab-registre'); // go() remplit le sélecteur puis charge les réponses (plus de double chargement)
 }
 
 async function loadActiveQuestionnaire(id) {
@@ -1197,8 +1653,10 @@ async function fillQuestionnaireSelect(selectId) {
   sel.innerHTML = questionnaires.length
     ? questionnaires.map(q => `<option value="${q._id}">${escapeHtml(q.title)}</option>`).join('')
     : `<option value="">${t('— Aucun questionnaire —', '— Tsy misy fanontaniana —')}</option>`;
-  if (prevVal && questionnaires.some(q => q._id === prevVal)) sel.value = prevVal;
-  else if (activeQuestionnaire && questionnaires.some(q => q._id === activeQuestionnaire._id)) sel.value = activeQuestionnaire._id;
+  // Le questionnaire actif (choisi depuis la liste ou un autre onglet) est prioritaire sur l'ancienne
+  // valeur du sélecteur : sinon, après un entretien, le Registre pouvait rouvrir un AUTRE questionnaire.
+  if (activeQuestionnaire && questionnaires.some(q => q._id === activeQuestionnaire._id)) sel.value = activeQuestionnaire._id;
+  else if (prevVal && questionnaires.some(q => q._id === prevVal)) sel.value = prevVal;
   // Le <select> peut s'être positionné tout seul sur la première option (comportement HTML standard
   // quand on remplit un <select> vide). On s'assure donc que activeQuestionnaire correspond bien à ce
   // qui est affiché, sinon les onglets Registre/Statistiques resteraient vides sans message d'erreur.
@@ -1299,9 +1757,13 @@ function clearDraft() {
 }
 
 function renderEditor() {
-  document.getElementById('editor-active-title').textContent = activeQuestionnaire.title;
+  document.getElementById('editor-active-title').textContent = activeQuestionnaire.title || '—';
   const body = document.getElementById('editor-body');
-  const qs = [...activeQuestionnaire.questions].sort((a, b) => a.order - b.order);
+  // Trie le tableau EN PLACE : les fonctions updateQuestion(i, ...) indexent activeQuestionnaire.questions,
+  // l'index affiché doit donc correspondre exactement à la position dans ce tableau.
+  activeQuestionnaire.questions.sort((a, b) => a.order - b.order);
+  activeQuestionnaire.questions.forEach((q, idx) => { q.order = idx; });
+  const qs = activeQuestionnaire.questions;
 
   let html = '';
   const draft = checkDraft();
@@ -1317,32 +1779,37 @@ function renderEditor() {
   }
 
   html += `<div class="card"><div class="card-title">${t('Paramètres généraux', 'Fandaharana ankapobeny')}</div>
-    <div class="fgroup"><label>${t('Titre', 'Lohateny')}</label>
-      <input type="text" id="edit-title" value="${escapeAttr(activeQuestionnaire.title)}" oninput="activeQuestionnaire.title=this.value;saveDraftLocal();"></div>
-    <div class="fgroup"><label>${t('Description', 'Famaritana')}</label>
+    <div class="qe-row" style="margin-bottom:0">
+    <div class="fgroup" style="margin-bottom:0"><label for="edit-title">${t('Titre', 'Lohateny')}</label>
+      <input type="text" id="edit-title" value="${escapeAttr(activeQuestionnaire.title)}" oninput="activeQuestionnaire.title=this.value;saveDraftLocal();document.getElementById('editor-active-title').textContent=this.value||'—';"></div>
+    <div class="fgroup" style="margin-bottom:0"><label for="edit-desc">${t('Description', 'Famaritana')}</label>
       <input type="text" id="edit-desc" value="${escapeAttr(activeQuestionnaire.description || '')}" oninput="activeQuestionnaire.description=this.value;saveDraftLocal();"></div>
+    </div>
   </div>`;
 
   html += `<div class="card">
-    <div class="card-title"><span class="ct-left">${t('Questions', 'Fanontaniana')}</span><span class="chip">${qs.length}</span></div>
-    <div class="toolbar" style="justify-content:flex-start">
-      <button class="btn btn-sm" onclick="previewQuestionnaire()">${icon('eye')} <span>${t('Aperçu', 'Topi-maso')}</span></button>
+    <div class="card-title"><span class="ct-left">${t('Questions', 'Fanontaniana')} <span class="chip chip-accent">${qs.length}</span></span>
+      <button class="btn btn-sm" onclick="previewQuestionnaire()">${icon('eye')} <span>${t('Aperçu', 'Topi-maso')}</span></button></div>
+    <div class="editor-toolbar">
       <input type="file" accept=".csv,text/csv" id="import-csv-input" class="hidden" onchange="importQuestionsCSV(this)">
       <button class="btn btn-sm" onclick="document.getElementById('import-csv-input').click()">${icon('upload')} <span>${t('Importer (CSV)', 'Ampidiro (CSV)')}</span></button>
-      <button class="btn btn-sm" onclick="downloadCSVTemplate()">${icon('fileText')} <span>${t('Modèle CSV', 'Modely CSV')}</span></button>
+      <button class="btn btn-sm btn-ghost" onclick="downloadCSVTemplate()">${icon('fileText')} <span>${t('Modèle CSV', 'Modely CSV')}</span></button>
     </div>
-    <div class="toolbar" style="justify-content:flex-start">
-      <select id="template-select" style="flex:1;min-width:200px">
+    <div class="editor-toolbar">
+      <select id="template-select" style="flex:1;min-width:200px" aria-label="${t('Modèle', 'Modely')}">
         ${Object.entries(QUESTION_TEMPLATES).map(([k, v]) => `<option value="${k}">${t(v.label.fr, v.label.mg)}</option>`).join('')}
       </select>
       <button class="btn btn-sm" onclick="insertTemplate(document.getElementById('template-select').value)">${icon('plus')} <span>${t('Insérer le modèle', 'Ampidiro ny modely')}</span></button>
     </div>`;
+  if (!qs.length) {
+    html += `<p class="field-hint" style="text-align:center;padding:18px 0">${t('Aucune question pour le moment. Ajoutez-en une ou importez un fichier CSV.', 'Mbola tsy misy fanontaniana. Ampio iray na ampidiro rakitra CSV.')}</p>`;
+  }
   qs.forEach((q, i) => { html += renderQuestionEditorRow(q, i, qs.length, qs); });
-  html += `<button class="btn" onclick="addQuestion()">${icon('plus')} <span>${t('Ajouter une question', 'Ampio fanontaniana')}</span></button>`;
+  html += `<button class="btn add-q-btn" onclick="addQuestion()">${icon('plus')} <span>${t('Ajouter une question', 'Ampio fanontaniana')}</span></button>`;
   html += `</div>`;
 
-  html += `<div class="row-actions">
-    <button class="btn btn-prim" style="flex:2" onclick="saveQuestionnaire()">${icon('save')} <span>${t('Enregistrer le questionnaire', 'Tehirizo ny fanontaniana')}</span></button>
+  html += `<div class="sticky-save">
+    <button class="btn btn-prim" onclick="saveQuestionnaire(this)">${icon('save')} <span>${t('Enregistrer le questionnaire', 'Tehirizo ny fanontaniana')}</span></button>
   </div>`;
 
   body.innerHTML = html;
@@ -1356,15 +1823,15 @@ function renderQuestionEditorRow(q, i, total, allQs) {
 
   let optsHtml = '';
   if (needsOptions) {
-    optsHtml += `<div style="margin-top:10px"><label style="font-size:12px;font-weight:600;color:var(--muted)">${t('Options de réponse', 'Safidy valiny')}</label>`;
+    optsHtml += `<div class="qe-section"><div class="flabel" style="margin-bottom:8px">${t('Options de réponse', 'Safidy valiny')}</div>`;
     (q.options || []).forEach((o, oi) => {
       optsHtml += `<div class="qe-opt-row">
         <input type="text" placeholder="${t('Libellé FR', 'Lazaina FR')}" value="${escapeAttr(o.fr)}" oninput="updateOption(${i},${oi},'fr',this.value)">
         <input type="text" placeholder="${t('Traduction Malagasy', 'Fandikana Malagasy')}" value="${escapeAttr(o.mg || '')}" oninput="updateOption(${i},${oi},'mg',this.value)">
-        <button class="btn btn-sm btn-danger" onclick="removeOption(${i},${oi})" aria-label="Supprimer l'option">${icon('x')}</button>
+        <button class="btn btn-sm btn-ghost btn-icon btn-danger" onclick="removeOption(${i},${oi})" aria-label="Supprimer l'option">${icon('x')}</button>
       </div>`;
     });
-    optsHtml += `<button class="btn btn-sm" onclick="addOption(${i})">${icon('plus')} <span>${t('Option', 'Safidy')}</span></button>`;
+    optsHtml += `<button class="btn btn-sm btn-ghost" style="color:var(--accent-text)" onclick="addOption(${i})">${icon('plus')} <span>${t('Ajouter une option', 'Ampio safidy')}</span></button>`;
     if (q.type === 'multi') {
       optsHtml += `<label class="check" style="margin-top:8px">
         <input type="checkbox" ${q.autre ? 'checked' : ''} onchange="updateQuestion(${i},'autre',this.checked)">
@@ -1375,10 +1842,10 @@ function renderQuestionEditorRow(q, i, total, allQs) {
 
   let scaleHtml = '';
   if (q.type === 'scale') {
-    scaleHtml = `<div class="qe-row" style="margin-top:10px">
-      <div class="fgroup" style="margin-bottom:0"><label>${t('Valeur minimale', 'Farany kely')}</label>
+    scaleHtml = `<div class="qe-row qe-section">
+      <div class="fgroup"><label>${t('Valeur minimale', 'Farany kely')}</label>
         <input type="number" value="${q.scaleMin ?? 1}" oninput="updateQuestion(${i},'scaleMin',parseInt(this.value)||1)"></div>
-      <div class="fgroup" style="margin-bottom:0"><label>${t('Valeur maximale', 'Farany be')}</label>
+      <div class="fgroup"><label>${t('Valeur maximale', 'Farany be')}</label>
         <input type="number" value="${q.scaleMax ?? 5}" oninput="updateQuestion(${i},'scaleMax',parseInt(this.value)||5)"></div>
     </div>`;
   }
@@ -1386,7 +1853,17 @@ function renderQuestionEditorRow(q, i, total, allQs) {
   const otherQs = allQs.filter(oq => oq.id !== q.id && oq.fr.trim());
   const showIf = q.showIf || null;
   const opLabels = { eq: t('est égal à', "mitovy amin'ny"), neq: t('est différent de', "tsy mitovy amin'ny"), contains: t('contient', 'misy') };
-  const showIfHtml = `<div class="fgroup" style="margin-top:10px;margin-bottom:0">
+  // Si la question dont on dépend propose des options, on les propose dans une liste
+  // (la valeur doit correspondre exactement : une saisie libre provoquait des fautes de frappe).
+  const depQ = showIf && showIf.field ? allQs.find(oq => oq.field === showIf.field) : null;
+  const depOpts = depQ && (depQ.type === 'sel' || depQ.type === 'multi') ? (depQ.options || []).filter(o => o.v) : [];
+  const showIfValueHtml = !showIf ? '' : depOpts.length
+    ? `<select onchange="updateShowIfValue(${i}, this.value)">
+         <option value="">${t('— choisir une valeur —', '— misafidiana sanda —')}</option>
+         ${depOpts.map(o => `<option value="${escapeAttr(o.v)}" ${showIf.value === o.v ? 'selected' : ''}>${escapeHtml(o.fr || o.v)}</option>`).join('')}
+       </select>`
+    : `<input type="text" placeholder="${t('valeur', 'sanda')}" value="${escapeAttr(showIf.value || '')}" oninput="updateShowIfValue(${i}, this.value)">`;
+  const showIfHtml = `<div class="fgroup qe-section" style="margin-bottom:0">
     <label>${t("Condition d'affichage (optionnel)", 'Fepetra fampisehoana (tsy voatery)')}</label>
     <select onchange="updateShowIfField(${i}, this.value)">
       <option value="">${t('Toujours afficher', 'Aseho foana')}</option>
@@ -1397,17 +1874,18 @@ function renderQuestionEditorRow(q, i, total, allQs) {
         <select onchange="updateShowIfOp(${i}, this.value)">
           ${Object.entries(opLabels).map(([k, l]) => `<option value="${k}" ${showIf.op === k ? 'selected' : ''}>${l}</option>`).join('')}
         </select>
-        <input type="text" placeholder="${t('valeur', 'sanda')}" value="${escapeAttr(showIf.value || '')}" oninput="updateShowIfValue(${i}, this.value)">
+        ${showIfValueHtml}
       </div>` : ''}
   </div>`;
 
-  return `<div class="q-editor-item">
+  const isNew = q.id === lastAddedQuestionId;
+  return `<div class="q-editor-item${isNew ? ' is-new' : ''}" id="qe-${escapeAttr(q.id)}">
     <div class="qe-head">
-      <strong>Q${i + 1}</strong>
+      <span class="qe-num"><b>Q${i + 1}</b> <span class="chip">${escapeHtml(typeLabels()[q.type] || q.type)}</span>${q.required ? `<span class="chip" style="color:var(--danger)">${t('Obligatoire', 'Tsy maintsy')}</span>` : ''}</span>
       <div class="qe-order-btns">
-        <button class="btn btn-sm" ${i === 0 ? 'disabled' : ''} onclick="moveQuestion(${i},-1)" aria-label="Monter">${icon('chevUp')}</button>
-        <button class="btn btn-sm" ${i === total - 1 ? 'disabled' : ''} onclick="moveQuestion(${i},1)" aria-label="Descendre">${icon('chevDn')}</button>
-        <button class="btn btn-sm btn-danger" onclick="removeQuestion(${i})" aria-label="Supprimer la question">${icon('trash')}</button>
+        <button class="btn btn-sm btn-ghost btn-icon" ${i === 0 ? 'disabled' : ''} onclick="moveQuestion(${i},-1)" aria-label="Monter" title="${t('Monter', 'Akarina')}">${icon('chevUp')}</button>
+        <button class="btn btn-sm btn-ghost btn-icon" ${i === total - 1 ? 'disabled' : ''} onclick="moveQuestion(${i},1)" aria-label="Descendre" title="${t('Descendre', 'Ampidinina')}">${icon('chevDn')}</button>
+        <button class="btn btn-sm btn-ghost btn-icon btn-danger" onclick="removeQuestion(${i})" aria-label="Supprimer la question" title="${t('Supprimer', 'Fafao')}">${icon('trash')}</button>
       </div>
     </div>
     <div class="qe-row">
@@ -1426,7 +1904,7 @@ function renderQuestionEditorRow(q, i, total, allQs) {
       </div>
     </div>
     <label class="check" style="margin-bottom:0">
-      <input type="checkbox" ${q.required ? 'checked' : ''} onchange="updateQuestion(${i},'required',this.checked)">
+      <input type="checkbox" ${q.required ? 'checked' : ''} onchange="updateQuestion(${i},'required',this.checked);renderEditor();">
       <span>${t('Question obligatoire', 'Fanontaniana tsy maintsy valiana')}</span></label>
     ${scaleHtml}
     ${optsHtml}
@@ -1436,16 +1914,31 @@ function renderQuestionEditorRow(q, i, total, allQs) {
 
 function uid() { return 'q' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6); }
 
+let lastAddedQuestionId = null; // seule la question tout juste ajoutée est animée au rendu
 function addQuestion() {
   const order = activeQuestionnaire.questions.length;
+  const newId = uid();
+  lastAddedQuestionId = newId;
   activeQuestionnaire.questions.push({
-    id: uid(), field: uid(), block: '', fr: '', mg: '', type: 'txt', options: [], autre: false, required: false,
+    id: newId, field: uid(), block: '', fr: '', mg: '', type: 'txt', options: [], autre: false, required: false,
     order, scaleMin: 1, scaleMax: 5, showIf: null
   });
   saveDraftLocal();
   renderEditor();
+  lastAddedQuestionId = null;
+  const el = document.getElementById('qe-' + newId);
+  if (el) {
+    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    const firstText = el.querySelectorAll('input[type=text]')[1]; // champ "Question (français)"
+    if (firstText) setTimeout(() => firstText.focus({ preventScroll: true }), 250);
+  }
 }
-function removeQuestion(i) {
+async function removeQuestion(i) {
+  const q = activeQuestionnaire.questions[i];
+  if (q && q.fr.trim()) {
+    const ok = await showConfirm(t('Supprimer la question « ', 'Hofafana ny fanontaniana « ') + q.fr.trim() + ' » ?');
+    if (!ok) return;
+  }
   activeQuestionnaire.questions.splice(i, 1);
   activeQuestionnaire.questions.forEach((q, idx) => q.order = idx);
   saveDraftLocal();
@@ -1587,21 +2080,34 @@ function importQuestionsCSV(input) {
   reader.readAsText(file, 'UTF-8');
 }
 
-async function saveQuestionnaire() {
+function focusQuestion(q) {
+  const el = document.getElementById('qe-' + q.id);
+  if (el) { el.scrollIntoView({ behavior: 'smooth', block: 'center' }); el.classList.remove('is-new'); void el.offsetWidth; el.classList.add('is-new'); }
+}
+
+async function saveQuestionnaire(btn) {
   activeQuestionnaire.title = document.getElementById('edit-title').value.trim();
   activeQuestionnaire.description = document.getElementById('edit-desc').value.trim();
+  if (!activeQuestionnaire.title) { showErr(t('Le titre est requis.', 'Ilaina ny lohateny.')); document.getElementById('edit-title').focus(); return; }
   const emptyQ = activeQuestionnaire.questions.find(q => !q.fr.trim());
-  if (emptyQ) { showErr(t('Chaque question doit avoir un intitulé en français.', 'Tsy maintsy misy lazaina frantsay ny fanontaniana tsirairay.')); return; }
-  try {
-    activeQuestionnaire = await api('/questionnaires/' + activeQuestionnaire._id, {
-      method: 'PUT',
-      body: { title: activeQuestionnaire.title, description: activeQuestionnaire.description, questions: activeQuestionnaire.questions }
-    });
-    clearDraft();
-    showOk(t('Questionnaire enregistré.', 'Voatahiry ny fanontaniana.'));
-    loadQuestionnaires();
-    renderEditor();
-  } catch (e) { showErr(e.message); }
+  if (emptyQ) { showErr(t('Chaque question doit avoir un intitulé en français.', 'Tsy maintsy misy lazaina frantsay ny fanontaniana tsirairay.')); focusQuestion(emptyQ); return; }
+  // Le serveur supprime silencieusement les options sans libellé : une question à choix
+  // sans aucune option valide serait impossible à remplir pendant l'entretien.
+  const noOpts = activeQuestionnaire.questions.find(q => (q.type === 'sel' || q.type === 'multi') && !(q.options || []).some(o => o.fr && o.fr.trim()));
+  if (noOpts) { showErr(t('Ajoute au moins une option à la question : ', 'Ampio safidy iray farafahakeliny amin\'ny fanontaniana: ') + noOpts.fr); focusQuestion(noOpts); return; }
+  await withBusy(btn, async () => {
+    try {
+      activeQuestionnaire = await api('/questionnaires/' + activeQuestionnaire._id, {
+        method: 'PUT',
+        body: { title: activeQuestionnaire.title, description: activeQuestionnaire.description, questions: activeQuestionnaire.questions }
+      });
+      idbCacheSet('questionnaire:' + activeQuestionnaire._id, activeQuestionnaire);
+      clearDraft();
+      showOk(t('Questionnaire enregistré.', 'Voatahiry ny fanontaniana.'));
+      loadQuestionnaires();
+      renderEditor();
+    } catch (e) { showErr(e.message); }
+  });
 }
 
 // ─────────────────────────────────────────────
@@ -1637,6 +2143,7 @@ function ouvrirEntretien() {
   previewMode = false; editingFicheId = null; interviewOrigin = 'tab-entretien';
   currentClientId = 'c' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
   go('tab-interview-session');
+  stepAnimDir = 1;
   renderStep();
 }
 
@@ -1681,12 +2188,18 @@ async function fermerEntretien() {
 }
 
 function renderStep() {
+  renderStepChrome();
+  renderStepBody();
+}
+
+// En-tête, progression et boutons de navigation de l'entretien
+function renderStepChrome() {
   const s = iSteps[iCur];
   const visible = visibleStepIndices();
   const posInVisible = visible.indexOf(iCur);
   const total = visible.length;
-  document.getElementById('iprogress').style.width = (total ? Math.round(posInVisible / total * 100) : 0) + '%';
-  document.getElementById('iprogress-txt').textContent = (posInVisible + 1) + ' / ' + total;
+  document.getElementById('iprogress').style.width = (total ? Math.round((posInVisible + 1) / total * 100) : 0) + '%';
+  document.getElementById('iprogress-txt').textContent = t('Question ', 'Fanontaniana ') + (posInVisible + 1) + ' / ' + total;
   document.getElementById('iblock-title').textContent = s.block || activeQuestionnaire.title;
   document.getElementById('ibtn-prev').disabled = posInVisible === 0;
   const last = posInVisible === total - 1;
@@ -1698,94 +2211,145 @@ function renderStep() {
     nb.innerHTML = last
       ? icon('save') + ' <span>' + (editingFicheId ? t('Enregistrer les modifications', 'Tehirizo ny fanovana') : t('Enregistrer', 'Tehirizo')) + '</span>'
       : '<span>' + t('Suivant', 'Manaraka') + '</span>' +
-        '<svg class="icon icon-sm" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>';
+        '<svg class="icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>';
   }
+}
 
+function renderStepBody() {
+  const s = iSteps[iCur];
   const body = document.getElementById('ibody');
   const cur = iData[s.field] ?? '';
+  const f = jsArg(s.field); // nom de champ sûr à injecter dans les onclick/oninput
   let html = '';
   if (previewMode) {
     html += `<div class="preview-badge">${icon('eye', 14)} <span>${t("Mode aperçu — rien n'est enregistré", 'Topi-maso — tsy voatahiry')}</span></div>`;
   }
-  html += `<div class="interview-q-fr">${escapeHtml(s.fr)}</div>` + (s.mg ? `<div class="interview-q-mg">${escapeHtml(s.mg)}</div>` : '');
+  html += `<div class="interview-q-fr">${escapeHtml(s.fr)}${s.required ? '<span class="req" title="' + t('Obligatoire', 'Tsy maintsy') + '">*</span>' : ''}</div>` +
+    (s.mg ? `<div class="interview-q-mg">${escapeHtml(s.mg)}</div>` : '');
 
   if (s.type === 'sel') {
-    html += `<div class="interview-opts">`;
-    (s.options || []).forEach(o => {
+    html += `<div class="interview-opts" role="radiogroup">`;
+    (s.options || []).forEach((o, oi) => {
       const sel = cur === o.v;
-      html += `<button class="interview-opt${sel ? ' selected' : ''}" onclick="iSel('${s.field}','${escapeAttr(o.v)}')">
-        ${escapeHtml(o.fr)}${o.mg ? `<span class="opt-mg">${escapeHtml(o.mg)}</span>` : ''}</button>`;
+      html += `<button type="button" role="radio" aria-checked="${sel}" class="interview-opt${sel ? ' selected' : ''}" style="--i:${oi}" onclick="iSel(${f},${jsArg(o.v)})">
+        <span class="opt-dot"></span><span class="opt-text">${escapeHtml(o.fr)}${o.mg ? `<span class="opt-mg">${escapeHtml(o.mg)}</span>` : ''}</span></button>`;
     });
     html += `</div>`;
   } else if (s.type === 'multi') {
     const vals = Array.isArray(cur) ? cur : (cur ? String(cur).split(', ') : []);
     const autre = iData[s.field + '_autre'] || '';
     html += `<div class="interview-chks">`;
-    (s.options || []).forEach(o => {
+    (s.options || []).forEach((o, oi) => {
       const chk = vals.includes(o.v);
-      html += `<label class="interview-chk${chk ? ' selected' : ''}">
-        <input type="checkbox" value="${escapeAttr(o.v)}" data-field="${s.field}" ${chk ? 'checked' : ''} onchange="iMulti('${s.field}')">
-        <span>${escapeHtml(o.fr)}${o.mg ? `<br><span style="font-size:11px;color:#7c3aed;font-style:italic">${escapeHtml(o.mg)}</span>` : ''}</span>
+      html += `<label class="interview-chk${chk ? ' selected' : ''}" style="--i:${oi}">
+        <input type="checkbox" value="${escapeAttr(o.v)}" data-field="${escapeAttr(s.field)}" ${chk ? 'checked' : ''} onchange="iMulti(${f})">
+        <span>${escapeHtml(o.fr)}${o.mg ? `<span class="opt-mg">${escapeHtml(o.mg)}</span>` : ''}</span>
       </label>`;
     });
     html += `</div>`;
     if (s.autre) {
-      html += `<div class="i-autre"><span style="font-size:12px;color:var(--muted);font-style:italic;white-space:nowrap">+ ${t('Autre', 'Hafa')} :</span>
-        <input type="text" value="${escapeAttr(autre)}" oninput="iData['${s.field}_autre']=this.value"></div>`;
+      html += `<div class="i-autre"><span>+ ${t('Autre', 'Hafa')}</span>
+        <input type="text" value="${escapeAttr(autre)}" placeholder="${t('Préciser…', 'Lazao…')}" oninput="iData[${f} + '_autre']=this.value"></div>`;
     }
   } else if (s.type === 'textarea') {
-    html += `<textarea class="interview-textarea" oninput="iData['${s.field}']=this.value">${escapeHtml(cur)}</textarea>`;
+    html += `<textarea class="interview-textarea" placeholder="${t('Saisir la réponse…', 'Soraty ny valiny…')}" oninput="iData[${f}]=this.value">${escapeHtml(cur)}</textarea>`;
   } else if (s.type === 'txt') {
-    html += `<input type="text" style="min-height:52px;font-size:16px;padding:14px" value="${escapeAttr(cur)}" oninput="iData['${s.field}']=this.value">`;
+    html += `<input type="text" class="interview-input" placeholder="${t('Saisir la réponse…', 'Soraty ny valiny…')}" value="${escapeAttr(cur)}" oninput="iData[${f}]=this.value">`;
   } else if (s.type === 'date') {
-    html += `<input type="date" style="min-height:52px;font-size:16px;padding:14px" value="${escapeAttr(cur)}" oninput="iData['${s.field}']=this.value">`;
+    html += `<input type="date" class="interview-input" value="${escapeAttr(cur)}" oninput="iData[${f}]=this.value">`;
   } else if (s.type === 'num') {
-    html += `<input type="number" style="min-height:52px;font-size:16px;padding:14px" value="${escapeAttr(cur)}" oninput="iData['${s.field}']=this.value">`;
+    html += `<input type="number" inputmode="decimal" class="interview-input" placeholder="0" value="${escapeAttr(cur)}" oninput="iData[${f}]=this.value">`;
   } else if (s.type === 'scale') {
     const min = s.scaleMin ?? 1, max = s.scaleMax ?? 5;
-    html += `<div class="interview-opts" style="flex-direction:row;flex-wrap:wrap">`;
+    html += `<div class="interview-opts scale-row" role="radiogroup">`;
     for (let n = min; n <= max; n++) {
       const sel = String(cur) === String(n);
-      html += `<button class="interview-opt${sel ? ' selected' : ''}" style="flex:1;min-width:52px;text-align:center;padding:14px 8px" onclick="iSel('${s.field}','${n}')">${n}</button>`;
+      html += `<button type="button" role="radio" aria-checked="${sel}" class="interview-opt${sel ? ' selected' : ''}" style="--i:${n - min}" onclick="iSel(${f},${jsArg(n)})">${n}</button>`;
     }
-    html += `</div><div style="display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-top:6px"><span>${min}</span><span>${max}</span></div>`;
+    html += `</div><div class="scale-legend"><span>${min}</span><span>${max}</span></div>`;
   } else if (s.type === 'geo') {
     const has = cur && typeof cur === 'object' && typeof cur.lat === 'number';
-    html += `<div class="card" style="background:var(--bg);border-style:dashed">
-      ${has ? `<p style="font-size:13px"><strong>${t('Position capturée', 'Toerana voaraiketra')} :</strong><br>${cur.lat.toFixed(5)}, ${cur.lng.toFixed(5)}</p>`
-            : `<p style="font-size:13px;color:var(--muted)">${t('Aucune position capturée.', 'Tsy mbola misy toerana voaraiketra.')}</p>`}
-      <button class="btn btn-prim" style="margin-top:10px" onclick="captureGeo('${s.field}')">${icon('mapPin')} <span>${t('Capturer ma position', 'Raiso ny toerana misy ahy')}</span></button>
+    html += `<div class="capture-box">
+      ${has ? `<p><strong style="color:var(--text)">${t('Position capturée', 'Toerana voaraiketra')}</strong><br><span class="mono">${cur.lat.toFixed(5)}, ${cur.lng.toFixed(5)}</span></p>`
+            : `<p>${t('Aucune position capturée.', 'Tsy mbola misy toerana voaraiketra.')}</p>`}
+      <button type="button" class="btn btn-prim" onclick="captureGeo(${f}, this)">${icon('mapPin')} <span>${has ? t('Mettre à jour la position', 'Havaozina ny toerana') : t('Capturer ma position', 'Raiso ny toerana misy ahy')}</span></button>
     </div>`;
   } else if (s.type === 'photo') {
-    html += `<div class="card" style="background:var(--bg);border-style:dashed;text-align:center">
-      ${cur ? `<img src="${cur}" style="max-width:100%;border-radius:8px;margin-bottom:10px" alt="">` : ''}
-      <input type="file" accept="image/*" capture="environment" id="photo-input-${s.field}" class="hidden" onchange="capturePhoto('${s.field}',this)">
-      <button class="btn" onclick="document.getElementById('photo-input-${s.field}').click()">${icon('camera')} <span>${cur ? t('Reprendre la photo', 'Averao ny sary') : t('Prendre une photo', 'Maka sary')}</span></button>
+    const inputId = 'photo-input-' + s.field.replace(/[^a-zA-Z0-9_-]/g, '_');
+    // cur provient des données (éventuellement modifiables) : on n'accepte qu'une image data: et on l'échappe
+    const safeImg = typeof cur === 'string' && cur.startsWith('data:image/') ? escapeAttr(cur) : '';
+    html += `<div class="capture-box">
+      ${safeImg ? `<img src="${safeImg}" alt="">` : `<p>${t('Aucune photo pour le moment.', 'Mbola tsy misy sary.')}</p>`}
+      <input type="file" accept="image/*" capture="environment" id="${inputId}" class="hidden" onchange="capturePhoto(${f},this)">
+      <button type="button" class="btn" onclick="document.getElementById('${inputId}').click()">${icon('camera')} <span>${safeImg ? t('Reprendre la photo', 'Averao ny sary') : t('Prendre une photo', 'Maka sary')}</span></button>
     </div>`;
   } else if (s.type === 'consent') {
     html += `<div class="interview-consent-box">
       <p>${icon('shield', 18)} <strong>${t('Consentement RGPD', 'Fanekena RGPD')}</strong><br>
       ${t('Confirme que la personne a été informée de ses droits et a donné son consentement libre et éclairé.', 'Manamarina fa nampahafantarina ny zony ilay olona ary nanome fanekena an-tsitrapo sy mazava.')}</p>
       <label class="interview-chk${cur ? ' selected' : ''}">
-        <input type="checkbox" ${cur ? 'checked' : ''} onchange="iData['${s.field}']=this.checked">
+        <input type="checkbox" ${cur ? 'checked' : ''} onchange="iData[${f}]=this.checked;this.closest('.interview-chk').classList.toggle('selected',this.checked)">
         <span>${t('Je confirme que le consentement a été recueilli', 'Manamarina aho fa noraisina ny fanekena')}</span></label></div>`;
   }
   body.innerHTML = html;
+
+  // Animation de transition entre les questions (sens selon Suivant / Précédent)
+  if (stepAnimDir) {
+    body.classList.remove('step-next', 'step-prev');
+    void body.offsetWidth; // relance l'animation
+    body.classList.add(stepAnimDir > 0 ? 'step-next' : 'step-prev');
+    stepAnimDir = 0;
+    const firstInput = body.querySelector('input.interview-input, textarea');
+    if (firstInput && window.matchMedia('(min-width: 960px)').matches) firstInput.focus({ preventScroll: true });
+  }
 }
 
-function iSel(field, val) { iData[field] = val; renderStep(); }
+let stepAnimDir = 0;
+
+// Valeur considérée comme "vide" pour une question obligatoire.
+// (L'ancien test `!iData[field]` acceptait un tableau vide pour les choix multiples
+// et refusait la valeur numérique 0.)
+function isAnswerEmpty(s) {
+  const v = iData[s.field];
+  if (s.type === 'consent') return v !== true;
+  if (s.type === 'multi') {
+    const arr = Array.isArray(v) ? v : (v ? [v] : []);
+    return arr.length === 0 && !String(iData[s.field + '_autre'] || '').trim();
+  }
+  if (v === undefined || v === null) return true;
+  if (typeof v === 'string') return v.trim() === '';
+  return false;
+}
+
+function iSel(field, val) {
+  iData[field] = val;
+  // Mise à jour ciblée de la sélection, sans re-rendre toute la question (évite de rejouer l'animation)
+  document.querySelectorAll('#ibody .interview-opt').forEach(btn => {
+    const on = btn.getAttribute('onclick').endsWith(',' + JSON.stringify(String(val)) + ')');
+    btn.classList.toggle('selected', on);
+    btn.setAttribute('aria-checked', on);
+  });
+  renderStepChrome(); // le nombre de questions visibles peut changer (conditions d'affichage)
+}
 function iMulti(field) {
-  const vals = [...document.querySelectorAll(`input[data-field="${field}"]:checked`)].map(x => x.value);
+  const sel = `#ibody input[data-field="${CSS.escape(field)}"]`;
+  const vals = [...document.querySelectorAll(sel + ':checked')].map(x => x.value);
   iData[field] = vals;
-  document.querySelectorAll(`input[data-field="${field}"]`).forEach(cb => {
+  document.querySelectorAll(sel).forEach(cb => {
     cb.closest('.interview-chk').classList.toggle('selected', cb.checked);
   });
+  renderStepChrome();
 }
-function captureGeo(field) {
+function captureGeo(field, btn) {
   if (!navigator.geolocation) { showErr(t("La géolocalisation n'est pas disponible sur cet appareil.", "Tsy misy azo ampiasaina ny GPS amin'ity fitaovana ity.")); return; }
+  if (btn) { btn.classList.add('is-loading'); btn.disabled = true; }
   navigator.geolocation.getCurrentPosition(
-    (pos) => { iData[field] = { lat: pos.coords.latitude, lng: pos.coords.longitude }; renderStep(); },
-    (err) => { showErr(t('Impossible de récupérer la position : ', 'Tsy azo raisina ny toerana: ') + err.message); }
+    (pos) => { iData[field] = { lat: pos.coords.latitude, lng: pos.coords.longitude }; renderStepBody(); },
+    (err) => {
+      if (btn) { btn.classList.remove('is-loading'); btn.disabled = false; }
+      showErr(t('Impossible de récupérer la position : ', 'Tsy azo raisina ny toerana: ') + err.message);
+    },
+    { enableHighAccuracy: true, timeout: 20000, maximumAge: 60000 } // sans timeout, la demande pouvait rester bloquée indéfiniment
   );
 }
 function capturePhoto(field, input) {
@@ -1815,8 +2379,14 @@ async function iStep(dir) {
 
   if (dir === 1 && pos === visible.length - 1) {
     const visibleSteps = visible.map(idx => iSteps[idx]);
-    const missing = visibleSteps.filter(s => s.required && !iData[s.field] && !(s.type === 'consent' && iData[s.field] === true));
-    if (missing.length) { showErr(t('Merci de compléter : ', 'Ampio azafady: ') + missing.map(m => m.fr).join(', ')); return; }
+    const missing = visibleSteps.filter(s => s.required && isAnswerEmpty(s));
+    if (missing.length) {
+      showErr(t('Merci de compléter : ', 'Ampio azafady: ') + missing.map(m => m.fr).join(', '));
+      // ramène directement sur la première question obligatoire non remplie
+      const target = iSteps.indexOf(missing[0]);
+      if (target !== -1 && target !== iCur) { stepAnimDir = -1; iCur = target; renderStep(); }
+      return;
+    }
 
     if (previewMode) { go('tab-editeur'); return; }
 
@@ -1834,26 +2404,26 @@ async function iStep(dir) {
       payload[s.field] = v;
     });
 
+    const nextBtn = document.getElementById('ibtn-next');
     if (editingFicheId) {
-      try {
-        await api('/fiches/' + editingFicheId, { method: 'PUT', body: { data: payload } });
-        const savedId = editingFicheId;
-        iData = {}; editingFicheId = null;
-        go('tab-registre');
-        document.getElementById('registre-q-select').value = activeQuestionnaire._id;
-        loadFiches();
-        setTimeout(() => showOk(t('Réponse modifiée.', 'Voavaozina ny valiny.')), 200);
-      } catch (e) { showErr(e.message); }
+      await withBusy(nextBtn, async () => {
+        try {
+          await api('/fiches/' + editingFicheId, { method: 'PUT', body: { data: payload } });
+          iData = {}; editingFicheId = null;
+          go('tab-registre'); // recharge le registre du questionnaire actif
+          setTimeout(() => showOk(t('Réponse modifiée.', 'Voavaozina ny valiny.')), 200);
+        } catch (e) { showErr(e.message); }
+      });
       return;
     }
 
+    if (nextBtn.classList.contains('is-loading')) return; // évite un double envoi
+    nextBtn.classList.add('is-loading'); nextBtn.disabled = true;
     try {
       if (!navigator.onLine) throw Object.assign(new Error('offline'), { isNetworkError: true });
       await api('/questionnaires/' + activeQuestionnaire._id + '/fiches', { method: 'POST', body: { data: payload, clientId: currentClientId } });
       iData = {}; currentClientId = null;
-      go('tab-registre');
-      document.getElementById('registre-q-select').value = activeQuestionnaire._id;
-      loadFiches();
+      go('tab-registre'); // recharge le registre du questionnaire actif
       setTimeout(() => showOk(t('Réponse enregistrée.', 'Voatahiry ny valiny.')), 200);
     } catch (e) {
       if (e.isNetworkError || !navigator.onLine) {
@@ -1873,6 +2443,8 @@ async function iStep(dir) {
       } else {
         showErr(e.message);
       }
+    } finally {
+      nextBtn.classList.remove('is-loading'); nextBtn.disabled = false;
     }
     return;
   }
@@ -1880,6 +2452,7 @@ async function iStep(dir) {
   const newPos = pos + dir;
   if (newPos < 0 || newPos >= visible.length) return;
   iCur = visible[newPos];
+  stepAnimDir = dir;
   renderStep();
 }
 
@@ -1937,11 +2510,13 @@ function goRegistrePage(page) {
 
 async function loadFiches(page) {
   if (!activeQuestionnaire) {
-    document.getElementById('registre-body').innerHTML = '<div class="empty">' + icon('inbox', 28) + '<div>' +
-      t('Choisis un questionnaire ci-dessus.', 'Misafidiana fanontaniana eo ambony.') + '</div></div>';
+    document.getElementById('registre-body').innerHTML = emptyState('inbox', '',
+      t('Choisis un questionnaire ci-dessus.', 'Misafidiana fanontaniana eo ambony.'));
     return;
   }
   regPage = page || regPage || 1;
+  document.getElementById('registre-body').innerHTML = '<div class="sk-card">' +
+    Array.from({ length: 6 }, () => '<div class="skeleton" style="height:18px"></div>').join('') + '</div>';
   const ok = await loadFichesData();
   if (ok) applyRegistreFilterAndPaginate();
 }
@@ -1949,27 +2524,31 @@ async function loadFiches(page) {
 function renderRegistre() {
   const body = document.getElementById('registre-body');
   if (!currentFiches.length) {
-    body.innerHTML = '<div class="empty">' + icon('inbox', 28) + '<div>' +
-      (regSearch
-        ? t('Aucune réponse ne correspond à ta recherche.', "Tsy misy valiny mifanaraka amin'ny fikarohana.")
-        : t('Aucune réponse enregistrée pour ce questionnaire.', "Mbola tsy misy valiny voatahiry amin'ity fanontaniana ity.")) + '</div></div>';
+    body.innerHTML = regSearch
+      ? emptyState('inbox', t('Aucun résultat', 'Tsy misy valiny'),
+          t('Aucune réponse ne correspond à ta recherche.', "Tsy misy valiny mifanaraka amin'ny fikarohana."))
+      : emptyState('inbox', t("Aucune réponse pour l'instant", 'Mbola tsy misy valiny'),
+          t('Les réponses apparaîtront ici dès le premier entretien enregistré.', 'Hiseho eto ny valiny raha vao voatahiry ny fanadihadiana voalohany.'),
+          `<button class="btn btn-sm btn-prim" onclick="go('tab-entretien')">${icon('play', 14)} <span>${t('Démarrer un entretien', 'Atombohy ny fanadihadiana')}</span></button>`);
     return;
   }
   const qs = [...activeQuestionnaire.questions].sort((a, b) => a.order - b.order);
 
-  let table = `<div class="card"><div class="tbl-wrap"><table><thead><tr><th>${t('Réf.', 'Laharana')}</th><th>${t('Date', 'Daty')}</th>`;
-  qs.forEach(q => table += `<th>${escapeHtml(q.fr.slice(0, 24))}</th>`);
+  const fmt = (q, val) => q.type === 'photo' && val ? t('[photo]', '[sary]')
+    : q.type === 'consent' ? (val === true ? t('Oui', 'Eny') : '')
+    : String(val ?? '');
+  let table = `<div class="card tbl-card"><div class="tbl-wrap"><table><thead><tr><th>${t('Réf.', 'Laharana')}</th><th>${t('Date', 'Daty')}</th>`;
+  qs.forEach(q => table += `<th title="${escapeAttr(q.fr)}">${escapeHtml(q.fr.length > 28 ? q.fr.slice(0, 27) + '…' : q.fr)}</th>`);
   table += `<th></th></tr></thead><tbody>`;
   currentFiches.forEach(f => {
-    table += `<tr><td class="chip">${f.refId}</td><td>${new Date(f.createdAt).toLocaleDateString('fr-FR')}</td>`;
+    table += `<tr><td><span class="ref-chip">${escapeHtml(f.refId)}</span></td><td>${new Date(f.createdAt).toLocaleDateString('fr-FR')}</td>`;
     qs.forEach(q => {
-      const val = f.data[q.field];
-      const display = q.type === 'photo' && val ? t('[photo]', '[sary]') : String(val ?? '');
-      table += `<td>${escapeHtml(display)}</td>`;
+      const display = fmt(q, f.data[q.field]);
+      table += `<td title="${escapeAttr(display)}">${escapeHtml(display) || '<span style="color:var(--subtle)">—</span>'}</td>`;
     });
-    table += `<td style="white-space:nowrap">
-      <button class="btn btn-sm" onclick="editFiche('${f._id}')" aria-label="Modifier">${icon('edit')}</button>
-      <button class="btn btn-sm btn-danger" onclick="deleteFiche('${f._id}')" aria-label="Supprimer">${icon('trash')}</button>
+    table += `<td class="td-actions">
+      <button class="btn btn-sm btn-ghost btn-icon" onclick="editFiche('${f._id}')" title="${t('Modifier', 'Ovay')}" aria-label="${t('Modifier', 'Ovay')}">${icon('edit')}</button>
+      <button class="btn btn-sm btn-ghost btn-icon btn-danger" onclick="deleteFiche('${f._id}')" title="${t('Supprimer', 'Fafao')}" aria-label="${t('Supprimer', 'Fafao')}">${icon('trash')}</button>
     </td></tr>`;
   });
   table += `</tbody></table></div></div>`;
@@ -1977,17 +2556,16 @@ function renderRegistre() {
   let cards = `<div class="reg-cards">`;
   currentFiches.forEach(f => {
     cards += `<div class="reg-card"><div class="reg-card-head">
-      <span class="reg-card-id">${f.refId}</span><span class="reg-card-date">${new Date(f.createdAt).toLocaleDateString('fr-FR')}</span></div>
+      <span class="ref-chip">${escapeHtml(f.refId)}</span><span class="reg-card-date">${new Date(f.createdAt).toLocaleDateString('fr-FR')}</span></div>
       <div class="reg-card-body">`;
     qs.slice(0, 6).forEach(q => {
-      const val = f.data[q.field];
-      const display = q.type === 'photo' && val ? t('[photo]', '[sary]') : String(val ?? '—');
-      cards += `<div class="reg-card-field"><span>${escapeHtml(q.fr.slice(0, 20))}</span><strong>${escapeHtml(display)}</strong></div>`;
+      const display = fmt(q, f.data[q.field]) || '—';
+      cards += `<div class="reg-card-field"><span title="${escapeAttr(q.fr)}">${escapeHtml(q.fr)}</span><strong>${escapeHtml(display)}</strong></div>`;
     });
     cards += `</div>
-      <div style="display:flex;gap:8px">
-        <button class="btn btn-sm" style="flex:1;justify-content:center" onclick="editFiche('${f._id}')">${icon('edit')} <span>${t('Modifier', 'Ovay')}</span></button>
-        <button class="btn btn-sm btn-danger" style="flex:1;justify-content:center" onclick="deleteFiche('${f._id}')">${icon('trash')} <span>${t('Supprimer', 'Fafao')}</span></button>
+      <div class="reg-card-actions">
+        <button class="btn btn-sm" onclick="editFiche('${f._id}')">${icon('edit')} <span>${t('Modifier', 'Ovay')}</span></button>
+        <button class="btn btn-sm btn-danger" onclick="deleteFiche('${f._id}')">${icon('trash')} <span>${t('Supprimer', 'Fafao')}</span></button>
       </div></div>`;
   });
   cards += `</div>`;
@@ -2009,6 +2587,7 @@ async function deleteFiche(id) {
   if (!ok) return;
   try {
     await api('/fiches/' + id, { method: 'DELETE' });
+    showOk(t('Réponse supprimée.', 'Voafafa ny valiny.'));
     loadFiches();
   } catch (e) { showErr(e.message); }
 }
@@ -2018,19 +2597,36 @@ async function deleteFiche(id) {
 // ─────────────────────────────────────────────
 async function loadStats() {
   if (!activeQuestionnaire) {
-    document.getElementById('stats-body').innerHTML = '<div class="empty">' + icon('inbox', 28) + '<div>' +
-      t('Choisis un questionnaire ci-dessus.', 'Misafidiana fanontaniana eo ambony.') + '</div></div>';
+    document.getElementById('stats-body').innerHTML = emptyState('chart', '',
+      t('Choisis un questionnaire ci-dessus.', 'Misafidiana fanontaniana eo ambony.'));
     return;
   }
+  document.getElementById('stats-body').innerHTML = '<div class="stats-grid">' +
+    '<div class="sk-card"><div class="skeleton" style="height:60px"></div></div>'.repeat(3) + '</div>' +
+    '<div class="sk-card"><div class="skeleton" style="height:220px"></div></div>';
   const ok = await loadFichesData();
   if (ok) { currentFiches = currentAllFiches; renderStats(); }
 }
 
-const CHART_COLORS = ['#4f46e5', '#0ea5e9', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#14b8a6', '#f97316', '#64748b'];
+const CHART_COLORS = ['#6366f1', '#0ea5e9', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#14b8a6', '#f97316', '#64748b'];
 let chartInstances = [];
-if (window.Chart) {
-  Chart.defaults.font.family = "'DM Sans', sans-serif";
-  Chart.defaults.color = '#6b7280';
+function applyChartTheme() {
+  if (!window.Chart) return;
+  Chart.defaults.font.family = "'Inter', system-ui, sans-serif";
+  Chart.defaults.color = cssVar('--muted') || '#64748b';
+  Chart.defaults.borderColor = cssVar('--border') || '#e4e7ef';
+  Chart.defaults.plugins.tooltip.backgroundColor = '#0f172a';
+  Chart.defaults.plugins.tooltip.padding = 10;
+  Chart.defaults.plugins.tooltip.cornerRadius = 8;
+  Chart.defaults.plugins.tooltip.titleFont = { weight: '600' };
+  Chart.defaults.animation.duration = 700;
+}
+applyChartTheme();
+
+// Clé de jour en heure LOCALE (toISOString() regroupait par jour UTC : à Madagascar (UTC+3),
+// une réponse saisie entre minuit et 3h était comptée la veille).
+function localDayKey(d) {
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
 }
 
 function renderStats() {
@@ -2038,16 +2634,17 @@ function renderStats() {
   chartInstances = [];
   const body = document.getElementById('stats-body');
   if (!currentFiches.length) {
-    body.innerHTML = '<div class="empty">' + icon('inbox', 28) + '<div>' +
-      t('Aucune donnée à analyser pour ce questionnaire.', "Mbola tsy misy angona hodinihina amin'ity fanontaniana ity.") + '</div></div>';
+    body.innerHTML = emptyState('chart', t('Pas encore de données', 'Mbola tsy misy angona'),
+      t('Aucune donnée à analyser pour ce questionnaire.', "Mbola tsy misy angona hodinihina amin'ity fanontaniana ity."));
     return;
   }
-  const qs = activeQuestionnaire.questions.filter(q => q.type === 'sel' || q.type === 'multi');
+  const qs = [...activeQuestionnaire.questions].sort((a, b) => a.order - b.order).filter(q => q.type === 'sel' || q.type === 'multi');
+  const last7 = currentFiches.filter(f => Date.now() - new Date(f.createdAt).getTime() < 7 * 86400000).length;
 
-  let html = `<div class="stats-grid">
-    <div class="stat-card"><div class="stat-num">${currentFiches.length}</div><div class="stat-label">${t('Réponses totales', 'Valiny rehetra')}</div></div>
-    <div class="stat-card"><div class="stat-num">${activeQuestionnaire.questions.length}</div><div class="stat-label">${t('Questions', 'Fanontaniana')}</div></div>
-    <div class="stat-card"><div class="stat-num">${qs.length}</div><div class="stat-label">${t('Questions à choix', 'Fanontaniana misafidy')}</div></div>
+  let html = `<div class="stats-grid stagger">
+    <div class="stat-card" style="--i:0"><div class="stat-ic">${icon('users', 18)}</div><div><div class="stat-num" data-count="${currentFiches.length}">0</div><div class="stat-label">${t('Réponses totales', 'Valiny rehetra')}</div></div></div>
+    <div class="stat-card" style="--i:1"><div class="stat-ic">${icon('clock', 18)}</div><div><div class="stat-num" data-count="${last7}">0</div><div class="stat-label">${t('Ces 7 derniers jours', "Tao anatin'ny 7 andro")}</div></div></div>
+    <div class="stat-card" style="--i:2"><div class="stat-ic">${icon('help', 18)}</div><div><div class="stat-num" data-count="${activeQuestionnaire.questions.length}">0</div><div class="stat-label">${t('Questions', 'Fanontaniana')} · ${qs.length} ${t('à choix', 'misafidy')}</div></div></div>
   </div>`;
 
   html += `<div class="card chart-card full">
@@ -2056,12 +2653,12 @@ function renderStats() {
   </div>`;
 
   if (!qs.length) {
-    html += `<div class="empty">${icon('inbox', 24)}<div>${t('Ajoute des questions à choix (unique ou multiple) pour voir plus de graphiques.', 'Ampio fanontaniana misafidy (tokana na maro) mba hahitana tsipika bebe kokoa.')}</div></div>`;
+    html += emptyState('chart', '', t('Ajoute des questions à choix (unique ou multiple) pour voir plus de graphiques.', 'Ampio fanontaniana misafidy (tokana na maro) mba hahitana tsipika bebe kokoa.'));
   } else {
     html += `<div class="charts-grid">`;
     qs.forEach((q, i) => {
-      html += `<div class="card chart-card">
-        <div class="card-title">${escapeHtml(q.fr)}</div>
+      html += `<div class="card chart-card" style="--i:${Math.min(i, 8)}">
+        <div class="card-title"><span>${escapeHtml(q.fr)}</span><span class="chip">${q.type === 'multi' ? t('Choix multiples', 'Safidy maro') : t('Choix unique', 'Safidy tokana')}</span></div>
         <div class="chart-wrap"><canvas id="chart-q-${i}"></canvas></div>
       </div>`;
     });
@@ -2069,6 +2666,8 @@ function renderStats() {
   }
 
   body.innerHTML = html;
+  animateCounts(body);
+  applyChartTheme();
 
   if (!window.Chart) {
     showErr(t('Les graphiques n\'ont pas pu se charger (librairie indisponible). Vérifie ta connexion internet et recharge la page.', 'Tsy voatohy ny tsipika (rindrankajy tsy azo raisina). Jereo ny fifandraisana internet ary avereno alaina ny pejy.'));
@@ -2078,27 +2677,37 @@ function renderStats() {
   // Graphique temporel : nombre de réponses par jour
   const byDate = {};
   currentFiches.forEach(f => {
-    const d = new Date(f.createdAt);
-    const key = d.toISOString().slice(0, 10);
+    const key = localDayKey(new Date(f.createdAt));
     byDate[key] = (byDate[key] || 0) + 1;
   });
   const sortedDates = Object.keys(byDate).sort();
   const timelineCtx = document.getElementById('chart-timeline').getContext('2d');
+  const grad = timelineCtx.createLinearGradient(0, 0, 0, 250);
+  grad.addColorStop(0, 'rgba(99,102,241,0.28)');
+  grad.addColorStop(1, 'rgba(99,102,241,0)');
+  const fewDays = sortedDates.length < 3; // une courbe sur 1-2 points est illisible : barres à la place
   chartInstances.push(new Chart(timelineCtx, {
-    type: 'line',
+    type: fewDays ? 'bar' : 'line',
     data: {
-      labels: sortedDates.map(d => new Date(d).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' })),
+      // "T12:00" : interprétée en heure locale, la date ne glisse pas d'un jour selon le fuseau
+      labels: sortedDates.map(d => new Date(d + 'T12:00:00').toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' })),
       datasets: [{
         label: t('Réponses', 'Valiny'),
         data: sortedDates.map(d => byDate[d]),
-        borderColor: '#4f46e5', backgroundColor: 'rgba(79,70,229,0.1)',
-        fill: true, tension: 0.3, pointRadius: 3, pointBackgroundColor: '#4f46e5'
+        borderColor: '#6366f1', backgroundColor: fewDays ? '#6366f1' : grad, borderWidth: fewDays ? 0 : 2.5,
+        borderRadius: 6, maxBarThickness: 48,
+        fill: true, tension: 0.35, pointRadius: 3.5, pointHoverRadius: 6,
+        pointBackgroundColor: '#fff', pointBorderColor: '#6366f1', pointBorderWidth: 2
       }]
     },
     options: {
       responsive: true, maintainAspectRatio: false,
+      interaction: { intersect: false, mode: 'index' },
       plugins: { legend: { display: false } },
-      scales: { y: { beginAtZero: true, ticks: { precision: 0 } } }
+      scales: {
+        y: { beginAtZero: true, ticks: { precision: 0 }, grid: { color: cssVar('--border') }, border: { display: false } },
+        x: { grid: { display: false }, border: { display: false } }
+      }
     }
   }));
 
@@ -2110,28 +2719,39 @@ function renderStats() {
       const vals = q.type === 'multi' ? String(raw || '').split(', ').filter(Boolean) : [raw].filter(Boolean);
       vals.forEach(v => { counts[v] = (counts[v] || 0) + 1; });
     });
-    const labels = Object.keys(counts);
+    const keys = Object.keys(counts);
     const values = Object.values(counts);
-    const ctx = document.getElementById('chart-q-' + i).getContext('2d');
-    if (!labels.length) return;
+    const canvas = document.getElementById('chart-q-' + i);
+    if (!keys.length) {
+      canvas.parentElement.innerHTML = '<p class="field-hint" style="text-align:center;padding-top:100px">' +
+        t('Aucune réponse à cette question.', "Tsy misy valiny amin'ity fanontaniana ity.") + '</p>';
+      return;
+    }
+    const ctx = canvas.getContext('2d');
+    // affiche les libellés des options (et non leurs valeurs techniques)
+    const labelOf = (v) => { const o = (q.options || []).find(o => o.v === v); return o ? t(o.fr, o.mg) : v; };
+    const labels = keys.map(labelOf);
 
     if (q.type === 'sel') {
       chartInstances.push(new Chart(ctx, {
         type: 'doughnut',
-        data: { labels, datasets: [{ data: values, backgroundColor: CHART_COLORS, borderWidth: 2, borderColor: '#fff' }] },
+        data: { labels, datasets: [{ data: values, backgroundColor: CHART_COLORS, borderWidth: 3, borderColor: cssVar('--surface') || '#fff', hoverOffset: 8 }] },
         options: {
-          responsive: true, maintainAspectRatio: false,
-          plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, padding: 12, font: { size: 11 } } } }
+          responsive: true, maintainAspectRatio: false, cutout: '62%',
+          plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, boxHeight: 10, usePointStyle: true, pointStyle: 'circle', padding: 14, font: { size: 12 } } } }
         }
       }));
     } else {
       chartInstances.push(new Chart(ctx, {
         type: 'bar',
-        data: { labels, datasets: [{ data: values, backgroundColor: CHART_COLORS, borderRadius: 4 }] },
+        data: { labels, datasets: [{ data: values, backgroundColor: CHART_COLORS, borderRadius: 6, borderSkipped: false, maxBarThickness: 28 }] },
         options: {
           indexAxis: 'y', responsive: true, maintainAspectRatio: false,
           plugins: { legend: { display: false } },
-          scales: { x: { beginAtZero: true, ticks: { precision: 0 } } }
+          scales: {
+            x: { beginAtZero: true, ticks: { precision: 0 }, grid: { color: cssVar('--border') }, border: { display: false } },
+            y: { grid: { display: false }, border: { display: false } }
+          }
         }
       }));
     }
@@ -2248,7 +2868,13 @@ function exportStatsPDF() {
 
   chartInstances.forEach((chart) => {
     const canvas = chart.canvas;
-    const imgData = canvas.toDataURL('image/png', 1.0);
+    // fond blanc explicite : le canvas est transparent (illisible en PDF depuis le thème sombre)
+    const tmp = document.createElement('canvas');
+    tmp.width = canvas.width; tmp.height = canvas.height;
+    const tctx = tmp.getContext('2d');
+    tctx.fillStyle = '#ffffff'; tctx.fillRect(0, 0, tmp.width, tmp.height);
+    tctx.drawImage(canvas, 0, 0);
+    const imgData = tmp.toDataURL('image/png', 1.0);
     const pageWidth = doc.internal.pageSize.getWidth() - 28;
     const imgHeight = (canvas.height / canvas.width) * pageWidth;
     if (y + imgHeight > doc.internal.pageSize.getHeight() - 14) { doc.addPage(); y = 18; }
@@ -2276,6 +2902,10 @@ function escapeAttr(str) { return escapeHtml(str); }
 // INSTALLATION DE L'APPLICATION (PWA)
 // ─────────────────────────────────────────────
 let deferredInstallPrompt = null;
+// Les boutons d'installation existent en double (barre latérale + barre mobile) : on les cible par classe
+function showInstall(selector, visible) {
+  document.querySelectorAll(selector).forEach(b => b.classList.toggle('hidden', !visible));
+}
 
 function isIosDevice() {
   return /iphone|ipad|ipod/i.test(navigator.userAgent) && !window.MSStream;
@@ -2289,7 +2919,7 @@ function isStandaloneDisplay() {
 window.addEventListener('beforeinstallprompt', (e) => {
   e.preventDefault();
   deferredInstallPrompt = e;
-  if (!isStandaloneDisplay()) document.getElementById('install-btn').classList.remove('hidden');
+  if (!isStandaloneDisplay()) showInstall('.js-install', true);
 });
 
 async function triggerInstall() {
@@ -2297,14 +2927,14 @@ async function triggerInstall() {
   deferredInstallPrompt.prompt();
   const choice = await deferredInstallPrompt.userChoice;
   deferredInstallPrompt = null;
-  document.getElementById('install-btn').classList.add('hidden');
+  showInstall('.js-install', false);
   if (choice.outcome === 'accepted') showOk(t('Application installée.', 'Voapetraka ny rindrankajy.'));
 }
 
 window.addEventListener('appinstalled', () => {
   deferredInstallPrompt = null;
-  document.getElementById('install-btn').classList.add('hidden');
-  document.getElementById('install-btn-ios').classList.add('hidden');
+  showInstall('.js-install', false);
+  showInstall('.js-install-ios', false);
 });
 
 // iOS Safari ne déclenche jamais beforeinstallprompt : la seule voie est le menu
@@ -2321,7 +2951,7 @@ function showIosInstallInstructions() {
 
 function initInstallButton() {
   if (isStandaloneDisplay()) return; // déjà installée / déjà en mode app : rien à proposer
-  if (isIosDevice()) document.getElementById('install-btn-ios').classList.remove('hidden');
+  if (isIosDevice()) showInstall('.js-install-ios', true);
 }
 
 // Service worker : rend l'app installable et permet de la recharger hors-ligne.
@@ -2336,6 +2966,12 @@ if ('serviceWorker' in navigator) {
 // ─────────────────────────────────────────────
 // INIT
 // ─────────────────────────────────────────────
+const EDITOR_EMPTY_HTML = document.getElementById('editor-body').innerHTML;
+(function restoreLang() {
+  let saved = null;
+  try { saved = localStorage.getItem('tahiry-lang'); } catch (e) { /* stockage indisponible */ }
+  setLang(saved === 'mg' ? 'mg' : 'fr');
+})();
 checkResetTokenInUrl();
 checkSession();
 updateOfflineBanner();
