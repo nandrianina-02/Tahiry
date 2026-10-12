@@ -1,0 +1,2345 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Tahiry — créez des questionnaires personnalisables, menez vos entretiens (même hors-ligne) et analysez vos réponses.">
+<meta name="theme-color" content="#4f46e5">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Crect x='1.5' y='1.5' width='37' height='37' rx='11' fill='%234f46e5'/%3E%3Ccircle cx='14' cy='15' r='5.4' fill='white'/%3E%3Ccircle cx='23' cy='10.5' r='6.6' fill='white'/%3E%3Ccircle cx='29.5' cy='16.5' r='4.8' fill='white'/%3E%3Cpath d='M21 20 V31' stroke='white' stroke-width='2.6' stroke-linecap='round'/%3E%3Cpath d='M21 26 L16.5 30 M21 24 L26 28.5' stroke='white' stroke-width='2.2' stroke-linecap='round'/%3E%3C/svg%3E">
+<link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192.png">
+<link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+<link rel="manifest" href="/manifest.json">
+<title>Tahiry — Questionnaires & entretiens</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jspdf@2/dist/jspdf.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3/dist/jspdf.plugin.autotable.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&family=DM+Mono:wght@400;500&display=swap');
+  :root {
+    --accent:#4f46e5;--accent2:#0ea5e9;--success:#10b981;
+    --warning:#f59e0b;--danger:#ef4444;--surface:#ffffff;--bg:#f0f0f5;
+    --border:#e5e7eb;--text:#111827;--muted:#6b7280;--radius:12px;
+    --shadow:0 1px 3px rgba(0,0,0,.08),0 4px 12px rgba(0,0,0,.06);
+    --tap:48px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+  html{scroll-behavior:smooth;}
+  body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);font-size:15px;line-height:1.6;-webkit-text-size-adjust:100%;}
+  .hidden{display:none !important;}
+
+  /* ── STRUCTURE APP (sidebar responsive) ── */
+  .app-shell{max-width:1180px;margin:0 auto;padding:16px 12px 48px;}
+  .app-main{min-width:0;}
+  @media(min-width:900px){
+    .app-shell{display:grid;grid-template-columns:230px 1fr;gap:32px;align-items:start;padding-top:28px;}
+    .app-nav{position:sticky;top:24px;}
+  }
+
+  /* ── ICONES ── */
+  .icon{display:inline-block;vertical-align:-4px;flex-shrink:0;}
+  .icon-sm{vertical-align:-3px;}
+
+  /* ── TRADUCTION FR / MALAGASY ── */
+  [data-mg]{display:none;}
+  body.mg [data-fr]{display:none;}
+  body.mg [data-mg]{display:inline;}
+  [data-mg-block]{display:none;}
+  body.mg [data-fr-block]{display:none;}
+  body.mg [data-mg-block]{display:block;}
+  .lang-bar{display:flex;justify-content:flex-end;gap:6px;margin-bottom:12px;}
+  .lang-btn{padding:8px 16px;border-radius:24px;border:1px solid var(--border);background:white;font-size:13px;
+            font-weight:600;cursor:pointer;transition:.15s;min-height:40px;display:flex;align-items:center;}
+  .lang-btn.active{background:var(--accent);color:white;border-color:var(--accent);}
+
+  /* ── LOGO ── */
+  .logo-mark{flex-shrink:0;}
+  .brand{display:flex;align-items:center;gap:10px;}
+
+  header.topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px;}
+  header.topbar h1{font-size:20px;font-weight:700;letter-spacing:-.01em;}
+  header.topbar p{font-size:12px;color:var(--muted);margin-top:2px;}
+  .user-chip{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--muted);}
+  .user-chip strong{color:var(--text);}
+
+  .tabs-wrap{position:sticky;top:0;z-index:50;background:var(--bg);padding:0 0 8px;margin-bottom:14px;}
+  .tabs{display:flex;gap:0;border-bottom:1.5px solid var(--border);overflow-x:auto;scrollbar-width:none;-ms-overflow-style:none;}
+  .tabs::-webkit-scrollbar{display:none;}
+  .tab{padding:10px 14px;font-size:12px;font-weight:600;border:none;background:none;color:var(--muted);cursor:pointer;
+       border-bottom:2.5px solid transparent;margin-bottom:-1.5px;white-space:nowrap;transition:.15s;min-height:44px;
+       display:flex;align-items:center;gap:8px;}
+  .tab.active{color:var(--accent);border-bottom-color:var(--accent);}
+  .section{display:none;} .section.active{display:block;animation:fadeIn .25s ease;}
+  @keyframes fadeIn{from{opacity:0;transform:translateY(4px);}to{opacity:1;transform:none;}}
+
+  /* Sidebar desktop */
+  @media(min-width:900px){
+    header.topbar{flex-direction:column;align-items:flex-start;gap:16px;margin-bottom:20px;}
+    .user-chip{width:100%;justify-content:space-between;padding-top:14px;border-top:1px solid var(--border);}
+    .tabs-wrap{position:static;background:none;padding:0;margin-bottom:0;}
+    .tabs{flex-direction:column;border-bottom:none;gap:2px;overflow:visible;}
+    .tab{border-bottom:none;border-radius:10px;justify-content:flex-start;padding:11px 12px;
+         border-left:3px solid transparent;margin-bottom:0;}
+    .tab.active{background:#eef2ff;border-left-color:var(--accent);border-bottom-color:transparent;}
+    .lang-bar{justify-content:flex-start;}
+  }
+
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:14px;box-shadow:var(--shadow);}
+  .card-title{font-size:11px;font-weight:700;color:var(--muted);margin-bottom:14px;text-transform:uppercase;letter-spacing:.06em;
+              display:flex;align-items:center;gap:6px;justify-content:space-between;}
+  .card-title .ct-left{display:flex;align-items:center;gap:6px;}
+
+  .fgroup{display:flex;flex-direction:column;gap:4px;margin-bottom:12px;}
+  .fgroup label{font-size:12px;font-weight:600;color:var(--muted);}
+  select,input[type=text],input[type=email],input[type=password],input[type=date],input[type=number],textarea{
+    width:100%;padding:12px;border:1.5px solid var(--border);border-radius:10px;font-family:'DM Sans',sans-serif;
+    font-size:15px;color:var(--text);background:var(--bg);transition:border-color .15s;min-height:var(--tap);
+    -webkit-appearance:none;appearance:none;}
+  select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+         background-repeat:no-repeat;background-position:right 12px center;padding-right:36px;}
+  select:focus,input:focus,textarea:focus{outline:none;border-color:var(--accent);background:white;}
+  textarea{resize:vertical;min-height:80px;}
+
+  .checks{display:flex;flex-direction:column;gap:8px;}
+  .check{display:flex;align-items:flex-start;gap:12px;padding:10px 14px;border:1.5px solid var(--border);border-radius:10px;
+         cursor:pointer;background:var(--bg);transition:border-color .15s,background .15s;min-height:var(--tap);}
+  .check:has(input:checked){border-color:var(--accent);background:#eff6ff;}
+  .check input[type=checkbox]{width:20px;height:20px;accent-color:var(--accent);margin-top:2px;flex-shrink:0;cursor:pointer;}
+
+  .btn{padding:12px 18px;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;border:1.5px solid var(--border);
+       background:white;color:var(--text);transition:.15s;min-height:var(--tap);display:inline-flex;align-items:center;gap:6px;}
+  .btn:active{transform:scale(.97);}
+  .btn-prim{background:var(--accent);color:white;border-color:var(--accent);}
+  .btn-prim:active{background:#4338ca;}
+  .btn-sm{padding:8px 12px;font-size:12px;min-height:36px;}
+  .btn-danger{color:var(--danger);border-color:#fecaca;}
+  .btn-danger:active{background:#fef2f2;}
+  .btn-success{background:var(--success);color:white;border-color:var(--success);}
+  .row-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:16px;flex-wrap:wrap;}
+  .row-actions .btn{flex:1;justify-content:center;}
+
+  .alert{padding:12px 16px;border-radius:10px;font-size:14px;margin-bottom:14px;display:none;align-items:center;gap:8px;}
+  .alert-ok{background:#ecfdf5;color:#065f46;border:1px solid #a7f3d0;}
+  .alert-err{background:#fef2f2;color:#991b1b;border:1px solid #fecaca;}
+
+  .empty{text-align:center;padding:36px 20px;color:var(--muted);font-size:14px;display:flex;flex-direction:column;align-items:center;gap:10px;}
+  .chip{font-family:'DM Mono',monospace;font-size:11px;background:var(--bg);padding:2px 7px;border-radius:4px;color:var(--muted);border:1px solid var(--border);}
+
+  /* AUTH */
+  #auth-screen{max-width:400px;margin:60px auto;padding:0 16px;}
+  #auth-screen .brand{justify-content:center;margin-bottom:6px;}
+  #auth-screen h1{font-size:22px;text-align:center;}
+  #auth-screen p.sub{color:var(--muted);font-size:13px;text-align:center;margin-bottom:24px;}
+  .auth-switch{text-align:center;font-size:13px;color:var(--muted);margin-top:10px;}
+  .auth-switch a{color:var(--accent);font-weight:600;cursor:pointer;text-decoration:none;}
+
+  /* LISTE QUESTIONNAIRES */
+  .q-list{display:flex;flex-direction:column;gap:10px;}
+  .q-item{display:flex;justify-content:space-between;align-items:center;gap:10px;background:white;
+          border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;box-shadow:var(--shadow);flex-wrap:wrap;}
+  .q-item .q-info h3{font-size:15px;font-weight:700;margin-bottom:3px;}
+  .q-item .q-info p{font-size:12px;color:var(--muted);}
+  .q-item .q-actions{display:flex;gap:6px;flex-wrap:wrap;}
+
+  /* EDITEUR */
+  .q-editor-item{border:1.5px solid var(--border);border-radius:12px;padding:14px;margin-bottom:12px;background:var(--bg);}
+  .q-editor-item .qe-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;gap:8px;}
+  .qe-order-btns{display:flex;gap:4px;}
+  .qe-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;}
+  @media(max-width:520px){.qe-row{grid-template-columns:1fr;}}
+  .qe-opt-row{display:flex;gap:8px;margin-bottom:6px;align-items:center;}
+  .qe-opt-row input{min-height:40px;padding:8px 10px;font-size:13px;}
+  .mg-hint{font-size:11px;color:var(--accent2);margin-top:2px;}
+
+  /* MODE ENTRETIEN — page dédiée (plus de modale flottante) */
+  .back-btn{margin-bottom:16px;}
+  .interview-page{max-width:640px;margin:0 auto;}
+  .interview-modal{background:white;border-radius:16px;width:100%;box-shadow:var(--shadow);border:1px solid var(--border);
+                   display:flex;flex-direction:column;overflow:hidden;}
+  .interview-header{padding:18px 20px 14px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;flex-shrink:0;}
+  .interview-header h2{font-size:15px;font-weight:700;}
+  .interview-progress{font-size:12px;color:var(--muted);}
+  .interview-body{padding:28px 24px;flex:1;}
+  .interview-q-fr{font-size:18px;font-weight:600;color:var(--text);margin-bottom:4px;line-height:1.35;}
+  .interview-q-mg{font-size:13px;color:#7c3aed;font-style:italic;margin-bottom:20px;line-height:1.4;}
+  .interview-opts{display:flex;flex-direction:column;gap:10px;}
+  .interview-opt{padding:14px 16px;border:2px solid var(--border);border-radius:12px;cursor:pointer;font-size:15px;
+                 transition:.15s;text-align:left;background:white;min-height:var(--tap);}
+  .interview-opt:active{transform:scale(.98);}
+  .interview-opt.selected{border-color:var(--accent);background:#eff6ff;color:var(--accent);font-weight:600;}
+  .interview-opt .opt-mg{display:block;font-size:12px;color:#7c3aed;font-style:italic;margin-top:2px;font-weight:400;}
+  .interview-chks{display:flex;flex-direction:column;gap:10px;}
+  .interview-chk{display:flex;align-items:flex-start;gap:12px;padding:12px 14px;border:2px solid var(--border);border-radius:12px;
+                 cursor:pointer;transition:border-color .15s,background .15s;min-height:var(--tap);}
+  .interview-chk.selected{border-color:var(--accent);background:#eff6ff;}
+  .interview-chk input{width:22px;height:22px;margin-top:1px;flex-shrink:0;accent-color:var(--accent);}
+  .i-autre{margin-top:10px;display:flex;align-items:center;gap:8px;}
+  .i-autre input{flex:1;padding:12px;border:2px dashed var(--border);border-radius:10px;font-size:14px;min-height:44px;}
+  .interview-textarea{width:100%;border:2px solid var(--border);border-radius:12px;padding:12px 14px;font-family:'DM Sans',sans-serif;
+                      font-size:15px;min-height:100px;resize:vertical;}
+  .interview-footer{padding:16px 20px;border-top:1px solid var(--border);flex-shrink:0;display:flex;justify-content:space-between;gap:10px;}
+  .interview-footer .btn{flex:1;justify-content:center;}
+  .progress-bar{height:4px;background:var(--bg);flex-shrink:0;}
+  .progress-fill{height:4px;background:var(--accent);transition:width .3s ease;}
+  .interview-consent-box{background:#eff6ff;border:1.5px solid #bfdbfe;border-radius:12px;padding:14px;margin-bottom:14px;}
+  .interview-consent-box p{font-size:12px;color:#1e40af;margin-bottom:10px;line-height:1.5;}
+
+  /* REGISTRE */
+  .tbl-wrap{overflow-x:auto;display:block;}
+  @media(max-width:600px){.tbl-wrap{display:none;}}
+  table{width:100%;border-collapse:collapse;font-size:13px;}
+  th{text-align:left;padding:8px 10px;background:var(--bg);font-weight:700;color:var(--muted);border-bottom:1px solid var(--border);
+     font-size:10px;text-transform:uppercase;letter-spacing:.05em;}
+  td{padding:9px 10px;border-bottom:1px solid var(--border);vertical-align:middle;}
+  tr:hover td{background:#fafafa;}
+  .reg-cards{display:none;}
+  @media(max-width:600px){.reg-cards{display:flex;flex-direction:column;gap:10px;}}
+  .reg-card{background:white;border:1px solid var(--border);border-radius:var(--radius);padding:14px;box-shadow:var(--shadow);}
+  .reg-card-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;}
+  .reg-card-id{font-family:'DM Mono',monospace;font-size:11px;background:var(--bg);padding:3px 8px;border-radius:5px;color:var(--muted);border:1px solid var(--border);}
+  .reg-card-date{font-size:11px;color:var(--muted);}
+  .reg-card-body{display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:12px;margin-bottom:10px;}
+  .reg-card-field span{display:block;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;}
+  .reg-card-field strong{color:var(--text);font-size:13px;}
+
+  /* STATS */
+  .stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;}
+  @media(min-width:480px){.stats-grid{grid-template-columns:repeat(3,1fr);}}
+  .stat-card{background:white;border:1px solid var(--border);border-radius:var(--radius);padding:14px;text-align:center;}
+  .stat-num{font-size:26px;font-weight:700;color:var(--accent);}
+  .stat-label{font-size:11px;color:var(--muted);margin-top:3px;}
+
+  .qselect-bar{display:flex;gap:10px;align-items:center;margin-bottom:14px;flex-wrap:wrap;}
+  .qselect-bar select{flex:1;min-width:200px;}
+
+  /* GRAPHIQUES (Chart.js) */
+  .charts-grid{display:grid;grid-template-columns:1fr;gap:14px;}
+  @media(min-width:760px){.charts-grid{grid-template-columns:1fr 1fr;}}
+  .chart-card.full{grid-column:1 / -1;}
+  .chart-wrap{position:relative;height:240px;margin-top:4px;}
+  .chart-wrap.tall{height:280px;}
+
+  /* EXPORT / TOOLBAR */
+  .toolbar{display:flex;justify-content:flex-end;gap:8px;margin-bottom:14px;flex-wrap:wrap;}
+
+  /* BANNIÈRE HORS-LIGNE */
+  .offline-banner{display:none;align-items:center;gap:10px;background:#fffbeb;border:1px solid #fde68a;color:#92400e;
+                   border-radius:10px;padding:10px 14px;font-size:13px;margin-bottom:14px;}
+  .offline-banner.show{display:flex;}
+  .offline-banner .btn{margin-left:auto;}
+
+  /* PAGINATION */
+  .pagination{display:flex;justify-content:center;align-items:center;gap:12px;margin-top:14px;}
+  .pagination span{font-size:13px;color:var(--muted);}
+
+  /* BROUILLON */
+  .draft-banner{border-color:var(--warning) !important;background:#fffbeb !important;}
+  .draft-banner .card-title{color:#92400e;}
+
+  /* MOT DE PASSE OUBLIÉ */
+  .link-btn{background:none;border:none;color:var(--accent);font-size:13px;font-weight:600;cursor:pointer;padding:4px 0;text-align:left;}
+
+  /* CONDITION D'AFFICHAGE (éditeur) */
+  .showif-row{display:flex;gap:8px;margin-top:6px;}
+  .showif-row select, .showif-row input{flex:1;}
+
+  /* PREVIEW BADGE */
+  .preview-badge{background:#fef3c7;color:#92400e;font-size:11px;font-weight:700;padding:4px 10px;border-radius:20px;
+                  display:inline-flex;align-items:center;gap:6px;margin-bottom:10px;}
+
+  /* SEARCH */
+  .search-wrap{position:relative;flex:1;min-width:200px;}
+  .search-wrap input{padding-left:38px;}
+  .search-wrap .icon{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--muted);pointer-events:none;}
+
+  /* NOTIFICATIONS (toasts) — remplace les alert()/confirm() natifs du navigateur */
+  .toast-container{position:fixed;top:16px;right:16px;left:16px;z-index:400;display:flex;flex-direction:column;
+                    gap:10px;align-items:flex-end;pointer-events:none;}
+  @media(min-width:520px){.toast-container{left:auto;width:360px;}}
+  .toast{pointer-events:auto;width:100%;background:white;border-radius:12px;box-shadow:0 8px 30px rgba(0,0,0,.15);
+         border:1px solid var(--border);border-left:4px solid var(--muted);padding:12px 14px;display:flex;
+         align-items:flex-start;gap:10px;font-size:13px;line-height:1.4;opacity:0;transform:translateY(-8px);
+         transition:opacity .2s ease,transform .2s ease;}
+  .toast.show{opacity:1;transform:translateY(0);}
+  .toast-ok{border-left-color:var(--success);}
+  .toast-ok .icon{color:var(--success);}
+  .toast-err{border-left-color:var(--danger);}
+  .toast-err .icon{color:var(--danger);}
+  .toast-info{border-left-color:var(--accent);}
+  .toast-info .icon{color:var(--accent);}
+  .toast-msg{flex:1;padding-top:1px;}
+  .toast-close{background:none;border:none;cursor:pointer;color:var(--muted);padding:2px;flex-shrink:0;
+               border-radius:6px;display:flex;}
+  .toast-close:hover{background:var(--bg);}
+
+  /* MODALE DE CONFIRMATION — remplace confirm() natif du navigateur */
+  .confirm-overlay{display:none;position:fixed;inset:0;background:rgba(17,24,39,.55);z-index:500;
+                    align-items:center;justify-content:center;padding:20px;}
+  .confirm-overlay.open{display:flex;}
+  .confirm-modal{background:white;border-radius:16px;max-width:380px;width:100%;padding:22px;box-shadow:0 20px 60px rgba(0,0,0,.25);
+                 text-align:center;}
+  .confirm-icon{width:44px;height:44px;border-radius:50%;background:#fef2f2;color:var(--danger);display:flex;
+                align-items:center;justify-content:center;margin:0 auto 14px;}
+  .confirm-icon.info{background:#eff6ff;color:var(--accent);}
+  .confirm-message{font-size:14px;color:var(--text);line-height:1.5;margin-bottom:20px;white-space:pre-line;}
+  .confirm-actions{display:flex;gap:10px;}
+  .confirm-actions .btn{flex:1;justify-content:center;}
+</style>
+</head>
+<body>
+
+<!-- ══════════ ÉCRAN AUTHENTIFICATION ══════════ -->
+<div id="auth-screen">
+  <div class="lang-bar">
+    <button class="lang-btn active" id="lang-fr-auth" onclick="setLang('fr')">FR</button>
+    <button class="lang-btn" id="lang-mg-auth" onclick="setLang('mg')">MG</button>
+  </div>
+  <div class="brand">
+    <svg class="logo-mark" width="40" height="40" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+      <rect x="1.5" y="1.5" width="37" height="37" rx="11" fill="#4f46e5"/>
+      <circle cx="14" cy="15" r="5.4" fill="#ffffff"/>
+      <circle cx="23" cy="10.5" r="6.6" fill="#ffffff"/>
+      <circle cx="29.5" cy="16.5" r="4.8" fill="#ffffff"/>
+      <path d="M21 20 V31" stroke="#ffffff" stroke-width="2.6" stroke-linecap="round"/>
+      <path d="M21 26 L16.5 30 M21 24 L26 28.5" stroke="#ffffff" stroke-width="2.2" stroke-linecap="round"/>
+    </svg>
+    <h1>Tahiry</h1>
+  </div>
+  <p class="sub"><span data-fr>Questionnaires personnalisables & entretiens</span><span data-mg>Fanontaniana azo ovaina & fanadihadiana</span></p>
+
+  <div id="login-form">
+    <div class="card">
+      <div class="card-title"><span data-fr>Connexion</span><span data-mg>Fidirana</span></div>
+      <div class="fgroup"><label><span data-fr>Email</span><span data-mg>Mailaka</span></label><input type="email" id="login-email" placeholder="toi@exemple.com" autocomplete="email"></div>
+      <div class="fgroup"><label><span data-fr>Mot de passe</span><span data-mg>Teny miafina</span></label><input type="password" id="login-password" placeholder="········" autocomplete="current-password"></div>
+      <button class="btn btn-prim" style="width:100%;justify-content:center" onclick="login()">
+        <span data-fr>Se connecter</span><span data-mg>Hiditra</span></button>
+      <button class="link-btn" style="margin-top:10px" onclick="showForgot()">
+        <span data-fr>Mot de passe oublié ?</span><span data-mg>Hadino ny teny miafina?</span></button>
+    </div>
+    <p class="auth-switch">
+      <span data-fr>Pas encore de compte ?</span><span data-mg>Mbola tsy manana kaonty?</span>
+      <a onclick="showRegister()"><span data-fr>Créer un compte</span><span data-mg>Mamorona kaonty</span></a></p>
+  </div>
+
+  <div id="forgot-form" class="hidden">
+    <div class="card">
+      <div class="card-title"><span data-fr>Mot de passe oublié</span><span data-mg>Hadino ny teny miafina</span></div>
+      <p style="font-size:13px;color:var(--muted);margin-bottom:12px">
+        <span data-fr>Indique ton email, un lien de réinitialisation te sera envoyé s'il correspond à un compte.</span>
+        <span data-mg>Ampidiro ny mailakao, hisy rohy halefa aminao raha mifanaraka amin'ny kaonty.</span></p>
+      <div class="fgroup"><label><span data-fr>Email</span><span data-mg>Mailaka</span></label><input type="email" id="forgot-email" placeholder="toi@exemple.com" autocomplete="email"></div>
+      <button class="btn btn-prim" style="width:100%;justify-content:center" onclick="requestPasswordReset()">
+        <span data-fr>Envoyer le lien</span><span data-mg>Alefaso ny rohy</span></button>
+    </div>
+    <p class="auth-switch">
+      <a onclick="showLogin()"><span data-fr>Retour à la connexion</span><span data-mg>Miverina any amin'ny fidirana</span></a></p>
+  </div>
+
+  <div id="reset-form" class="hidden">
+    <div class="card">
+      <div class="card-title"><span data-fr>Nouveau mot de passe</span><span data-mg>Teny miafina vaovao</span></div>
+      <div class="fgroup"><label><span data-fr>Nouveau mot de passe (6 caractères min.)</span><span data-mg>Teny miafina vaovao (marika 6 farafahakeliny)</span></label><input type="password" id="reset-password" placeholder="········" autocomplete="new-password"></div>
+      <button class="btn btn-prim" style="width:100%;justify-content:center" onclick="submitPasswordReset()">
+        <span data-fr>Réinitialiser</span><span data-mg>Averina</span></button>
+    </div>
+  </div>
+
+  <div id="register-form" class="hidden">
+    <div class="card">
+      <div class="card-title"><span data-fr>Créer un compte</span><span data-mg>Mamorona kaonty</span></div>
+      <div class="fgroup"><label><span data-fr>Nom</span><span data-mg>Anarana</span></label><input type="text" id="reg-name" placeholder="..." autocomplete="name"></div>
+      <div class="fgroup"><label><span data-fr>Email</span><span data-mg>Mailaka</span></label><input type="email" id="reg-email" placeholder="toi@exemple.com" autocomplete="email"></div>
+      <div class="fgroup"><label><span data-fr>Mot de passe (6 caractères min.)</span><span data-mg>Teny miafina (marika 6 farafahakeliny)</span></label><input type="password" id="reg-password" placeholder="········" autocomplete="new-password"></div>
+      <button class="btn btn-prim" style="width:100%;justify-content:center" onclick="register()">
+        <span data-fr>Créer mon compte</span><span data-mg>Mamorona ny kaontiko</span></button>
+    </div>
+    <p class="auth-switch">
+      <span data-fr>Déjà un compte ?</span><span data-mg>Efa manana kaonty?</span>
+      <a onclick="showLogin()"><span data-fr>Se connecter</span><span data-mg>Hiditra</span></a></p>
+  </div>
+</div>
+
+<!-- ══════════ APPLICATION ══════════ -->
+<div id="app-screen" class="app-shell hidden">
+  <div class="app-nav">
+  <div class="lang-bar">
+    <button class="lang-btn active" id="lang-fr-app" onclick="setLang('fr')">FR</button>
+    <button class="lang-btn" id="lang-mg-app" onclick="setLang('mg')">MG</button>
+  </div>
+  <header class="topbar">
+    <div class="brand">
+      <svg class="logo-mark" width="34" height="34" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+        <rect x="1.5" y="1.5" width="37" height="37" rx="11" fill="#4f46e5"/>
+        <circle cx="14" cy="15" r="5.4" fill="#ffffff"/>
+        <circle cx="23" cy="10.5" r="6.6" fill="#ffffff"/>
+        <circle cx="29.5" cy="16.5" r="4.8" fill="#ffffff"/>
+        <path d="M21 20 V31" stroke="#ffffff" stroke-width="2.6" stroke-linecap="round"/>
+        <path d="M21 26 L16.5 30 M21 24 L26 28.5" stroke="#ffffff" stroke-width="2.2" stroke-linecap="round"/>
+      </svg>
+      <div><h1>Tahiry</h1><p><span data-fr>Questionnaires personnalisables & entretiens</span><span data-mg>Fanontaniana azo ovaina & fanadihadiana</span></p></div>
+    </div>
+    <div class="user-chip">
+      <strong id="user-name-chip"></strong>
+      <button class="btn btn-sm" onclick="logout()">
+        <svg class="icon icon-sm" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        <span data-fr>Déconnexion</span><span data-mg>Hivoaka</span>
+      </button>
+    </div>
+  </header>
+
+  <div class="tabs-wrap">
+    <div class="tabs">
+      <button class="tab active" data-tab="tab-liste" onclick="go('tab-liste')">
+        <svg class="icon icon-sm" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+        <span data-fr>Mes questionnaires</span><span data-mg>Ny fanontanianako</span>
+      </button>
+      <button class="tab" data-tab="tab-editeur" onclick="go('tab-editeur')">
+        <svg class="icon icon-sm" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+        <span data-fr>Éditeur</span><span data-mg>Fanovana</span>
+      </button>
+      <button class="tab" data-tab="tab-entretien" onclick="go('tab-entretien')">
+        <svg class="icon icon-sm" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+        <span data-fr>Entretien</span><span data-mg>Fanadihadiana</span>
+      </button>
+      <button class="tab" data-tab="tab-registre" onclick="go('tab-registre')">
+        <svg class="icon icon-sm" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+        <span data-fr>Registre</span><span data-mg>Rejisitra</span>
+      </button>
+      <button class="tab" data-tab="tab-stats" onclick="go('tab-stats')">
+        <svg class="icon icon-sm" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="6" y1="20" x2="6" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="18" y1="20" x2="18" y2="14"/></svg>
+        <span data-fr>Statistiques</span><span data-mg>Statistika</span>
+      </button>
+    </div>
+  </div>
+
+  <button class="btn btn-sm hidden" id="install-btn" onclick="triggerInstall()" style="width:100%;justify-content:center;margin-top:4px">
+    <svg class="icon icon-sm" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+    <span data-fr>Installer l'application</span><span data-mg>Apetraho ny rindrankajy</span>
+  </button>
+  <button class="btn btn-sm hidden" id="install-btn-ios" onclick="showIosInstallInstructions()" style="width:100%;justify-content:center;margin-top:4px">
+    <svg class="icon icon-sm" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+    <span data-fr>Installer l'application</span><span data-mg>Apetraho ny rindrankajy</span>
+  </button>
+  </div><!-- /app-nav -->
+
+  <div class="app-main">
+  <div class="offline-banner" id="offline-banner">
+    <svg class="icon icon-sm" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="1" y1="1" x2="23" y2="23"/><path d="M16.72 11.06A10.94 10.94 0 0 1 19 12.55"/><path d="M5 12.55a10.94 10.94 0 0 1 5.17-2.39"/><path d="M10.71 5.05A16 16 0 0 1 22.58 9"/><path d="M1.42 9a15.91 15.91 0 0 1 4.7-2.88"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg>
+    <span id="offline-banner-text"></span>
+    <button class="btn btn-sm hidden" id="offline-view-btn" onclick="showOrphanedFiches()">
+      <span data-fr>Voir</span><span data-mg>Jereo</span>
+    </button>
+    <button class="btn btn-sm" id="offline-sync-btn" onclick="syncPendingFiches({manual:true})">
+      <span data-fr>Synchroniser</span><span data-mg>Ampifandraiso</span>
+    </button>
+  </div>
+
+  <!-- LISTE -->
+  <div id="tab-liste" class="section active">
+    <div class="card">
+      <div class="card-title"><span data-fr>Nouveau questionnaire</span><span data-mg>Fanontaniana vaovao</span></div>
+      <div class="fgroup"><label><span data-fr>Titre</span><span data-mg>Lohateny</span></label>
+        <input type="text" id="new-q-title" placeholder="Ex: Entretien bénéficiaires 2026"></div>
+      <div class="fgroup"><label><span data-fr>Description (optionnel)</span><span data-mg>Famaritana (tsy voatery)</span></label>
+        <input type="text" id="new-q-desc"></div>
+      <button class="btn btn-prim" onclick="createQuestionnaire()">
+        <svg class="icon icon-sm" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        <span data-fr>Créer</span><span data-mg>Mamorona</span>
+      </button>
+    </div>
+    <div id="q-list" class="q-list"></div>
+  </div>
+
+  <!-- EDITEUR -->
+  <div id="tab-editeur" class="section">
+    <div class="card">
+      <div class="card-title">
+        <span class="ct-left"><span data-fr>Questionnaire à éditer</span><span data-mg>Fanontaniana hovaina</span></span>
+        <span class="chip" id="editor-active-title" data-fr>aucun</span>
+      </div>
+      <p style="font-size:13px;color:var(--muted)">
+        <span data-fr>Choisis un questionnaire depuis l'onglet "Mes questionnaires" (bouton Éditer).</span>
+        <span data-mg>Misafidiana fanontaniana avy amin'ny "Ny fanontanianako" (bokotra Fanovana).</span></p>
+    </div>
+    <div id="editor-body"></div>
+  </div>
+
+  <!-- ENTRETIEN -->
+  <div id="tab-entretien" class="section">
+    <div class="card">
+      <div class="card-title"><span data-fr>Choisir un questionnaire</span><span data-mg>Misafidiana fanontaniana</span></div>
+      <div class="qselect-bar">
+        <select id="interview-q-select" onchange="onSelectActiveQuestionnaire('interview-q-select')"></select>
+        <button class="btn btn-prim" onclick="ouvrirEntretien()">
+          <svg class="icon icon-sm" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+          <span data-fr>Commencer l'entretien</span><span data-mg>Manomboka ny fanadihadiana</span>
+        </button>
+      </div>
+      <p style="font-size:13px;color:var(--muted)">
+        <span data-fr>Le questionnaire doit contenir au moins une question (voir l'onglet Éditeur).</span>
+        <span data-mg>Tsy maintsy misy fanontaniana iray farafahakeliny (jereo ny "Fanovana").</span></p>
+    </div>
+  </div>
+
+  <!-- REGISTRE -->
+  <div id="tab-registre" class="section">
+    <div class="card">
+      <div class="card-title"><span data-fr>Choisir un questionnaire</span><span data-mg>Misafidiana fanontaniana</span></div>
+      <div class="qselect-bar">
+        <select id="registre-q-select" onchange="onSelectActiveQuestionnaire('registre-q-select')"></select>
+      </div>
+      <div class="qselect-bar">
+        <div class="search-wrap">
+          <svg class="icon icon-sm" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input type="text" id="registre-search" placeholder="" oninput="onRegistreSearch(this.value)"
+                 aria-label="Rechercher dans les réponses">
+        </div>
+        <button class="btn btn-sm" onclick="exportRegistreCSV()" aria-label="Export CSV">
+          <svg class="icon icon-sm" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          <span>CSV</span>
+        </button>
+        <button class="btn btn-sm" onclick="exportRegistreExcel()" aria-label="Export Excel">
+          <svg class="icon icon-sm" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          <span>Excel</span>
+        </button>
+        <button class="btn btn-sm" onclick="exportRegistrePDF()" aria-label="Export PDF">
+          <svg class="icon icon-sm" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          <span>PDF</span>
+        </button>
+      </div>
+    </div>
+    <div id="registre-body"></div>
+  </div>
+
+  <!-- STATS -->
+  <div id="tab-stats" class="section">
+    <div class="card">
+      <div class="card-title"><span data-fr>Choisir un questionnaire</span><span data-mg>Misafidiana fanontaniana</span></div>
+      <div class="qselect-bar">
+        <select id="stats-q-select" onchange="onSelectActiveQuestionnaire('stats-q-select')"></select>
+        <button class="btn" onclick="exportStatsPDF()">
+          <svg class="icon icon-sm" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          <span data-fr>Export PDF</span><span data-mg>Avoahy PDF</span>
+        </button>
+      </div>
+    </div>
+    <div id="stats-body"></div>
+  </div>
+
+  <!-- ENTRETIEN — page dédiée (plus de modale flottante) -->
+  <div id="tab-interview-session" class="section interview-page">
+    <button class="btn back-btn" onclick="fermerEntretien()">
+      <svg class="icon icon-sm" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+      <span data-fr>Retour</span><span data-mg>Miverina</span>
+    </button>
+    <div class="interview-modal">
+      <div class="progress-bar"><div class="progress-fill" id="iprogress" style="width:0%"></div></div>
+      <div class="interview-header">
+        <h2 id="iblock-title"><span data-fr>Entretien</span><span data-mg>Fanadihadiana</span></h2>
+        <span class="interview-progress" id="iprogress-txt">1 / 1</span>
+      </div>
+      <div class="interview-body" id="ibody"></div>
+      <div class="interview-footer">
+        <button class="btn" id="ibtn-prev" onclick="iStep(-1)">
+          <svg class="icon icon-sm" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+          <span data-fr>Précédent</span><span data-mg>Teo aloha</span>
+        </button>
+        <button class="btn btn-prim" id="ibtn-next" onclick="iStep(1)">
+          <span data-fr>Suivant</span><span data-mg>Manaraka</span>
+          <svg class="icon icon-sm" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+        </button>
+      </div>
+    </div>
+  </div>
+  </div><!-- /app-main -->
+</div><!-- /app-shell -->
+
+<!-- ══════════ NOTIFICATIONS (remplace alert() natif) ══════════ -->
+<div class="toast-container" id="toast-container"></div>
+
+<!-- ══════════ CONFIRMATION (remplace confirm() natif) ══════════ -->
+<div class="confirm-overlay" id="confirm-overlay">
+  <div class="confirm-modal">
+    <div class="confirm-icon" id="confirm-icon"></div>
+    <p class="confirm-message" id="confirm-message"></p>
+    <div class="confirm-actions">
+      <button class="btn" id="confirm-cancel-btn"></button>
+      <button class="btn btn-danger" id="confirm-ok-btn"></button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ RÉPONSES HORS-LIGNE ORPHELINES ══════════ -->
+<div class="confirm-overlay" id="orphan-overlay">
+  <div class="confirm-modal" style="max-width:480px;text-align:left">
+    <div class="card-title" style="margin-bottom:14px">
+      <span data-fr>Réponses hors-ligne non synchronisables</span><span data-mg>Valiny tsy voafandray</span>
+    </div>
+    <p style="font-size:13px;color:var(--muted);margin-bottom:14px">
+      <span data-fr>Le questionnaire visé par ces réponses n'existe plus (supprimé, ou recréé). Tu peux copier leurs données avant de les supprimer, ou les supprimer directement.</span>
+      <span data-mg>Efa tsy misy ny fanontaniana kendren'ireto valiny ireto. Azonao adika ny angona alohan'ny hamafana azy, na fafao mivantana.</span>
+    </p>
+    <div id="orphan-list" style="display:flex;flex-direction:column;gap:10px;max-height:50vh;overflow-y:auto"></div>
+    <div class="row-actions">
+      <button class="btn btn-prim" style="flex:1;justify-content:center" onclick="document.getElementById('orphan-overlay').classList.remove('open')">
+        <span data-fr>Fermer</span><span data-mg>Hidio</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ─────────────────────────────────────────────
+// ICONES SVG (aucun emoji dans le code)
+// ─────────────────────────────────────────────
+const ICONS = {
+  edit:   '<path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z"/>',
+  mic:    '<path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/>',
+  grid:   '<rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/>',
+  trash:  '<polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>',
+  save:   '<path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2Z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/>',
+  plus:   '<line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>',
+  chevUp: '<polyline points="18 15 12 9 6 15"/>',
+  chevDn: '<polyline points="6 9 12 15 18 9"/>',
+  x:      '<line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>',
+  check:  '<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>',
+  warn:   '<path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>',
+  shield: '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"/>',
+  inbox:  '<polyline points="22 12 16 12 14 15 10 15 8 12 2 12"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11Z"/>',
+  chevLeft:  '<polyline points="15 18 9 12 15 6"/>',
+  chevRight: '<polyline points="9 18 15 12 9 6"/>',
+  copy:   '<rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>',
+  upload: '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>',
+  eye:    '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8Z"/><circle cx="12" cy="12" r="3"/>',
+  fileText: '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>',
+  camera: '<path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2Z"/><circle cx="12" cy="13" r="4"/>',
+  mapPin: '<path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0Z"/><circle cx="12" cy="10" r="3"/>',
+  info:   '<circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/>',
+  download: '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>'
+};
+function icon(name, size) {
+  size = size || 16;
+  return '<svg class="icon icon-sm" width="' + size + '" height="' + size + '" viewBox="0 0 24 24" fill="none" ' +
+         'stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + (ICONS[name] || '') + '</svg>';
+}
+
+// ─────────────────────────────────────────────
+// LANGUE (FR / Malagasy) — s'applique à toute l'interface
+// ─────────────────────────────────────────────
+let currentLang = 'fr';
+function setLang(lang) {
+  currentLang = lang;
+  document.documentElement.lang = lang === 'mg' ? 'mg' : 'fr';
+  document.body.classList.toggle('mg', lang === 'mg');
+  ['lang-fr-auth', 'lang-fr-app'].forEach(id => document.getElementById(id) && document.getElementById(id).classList.toggle('active', lang === 'fr'));
+  ['lang-mg-auth', 'lang-mg-app'].forEach(id => document.getElementById(id) && document.getElementById(id).classList.toggle('active', lang === 'mg'));
+  if (activeQuestionnaire) {
+    if (document.getElementById('tab-editeur').classList.contains('active')) renderEditor();
+    if (document.getElementById('tab-registre').classList.contains('active')) renderRegistre();
+    if (document.getElementById('tab-stats').classList.contains('active')) renderStats();
+  }
+  if (document.getElementById('tab-interview-session').classList.contains('active')) renderStep();
+}
+function t(fr, mg) { return currentLang === 'mg' && mg ? mg : fr; }
+
+// ─────────────────────────────────────────────
+// ÉTAT GLOBAL
+// ─────────────────────────────────────────────
+let currentUser = null;
+let questionnaires = [];        // liste résumée (sans questions)
+let activeQuestionnaire = null; // document complet (avec questions) en cours d'édition/entretien/registre
+let currentFiches = [];
+
+// ─────────────────────────────────────────────
+// MODE HORS-LIGNE (IndexedDB) — entretiens réalisés sans connexion, et cache de lecture
+// pour que la liste des questionnaires, le registre et les statistiques restent consultables
+// hors-ligne (avec les dernières données vues en ligne).
+// ─────────────────────────────────────────────
+const IDB_NAME = 'tahiry-offline';
+const IDB_STORE = 'pending-fiches';
+const IDB_CACHE_STORE = 'cache';
+
+function idbOpen() {
+  return new Promise((resolve, reject) => {
+    const req = indexedDB.open(IDB_NAME, 2);
+    req.onupgradeneeded = () => {
+      const db = req.result;
+      if (!db.objectStoreNames.contains(IDB_STORE)) db.createObjectStore(IDB_STORE, { keyPath: 'clientId' });
+      if (!db.objectStoreNames.contains(IDB_CACHE_STORE)) db.createObjectStore(IDB_CACHE_STORE, { keyPath: 'key' });
+    };
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+}
+async function idbSavePending(entry) {
+  const db = await idbOpen();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(IDB_STORE, 'readwrite');
+    tx.objectStore(IDB_STORE).put(entry);
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+  });
+}
+async function idbGetAllPending() {
+  const db = await idbOpen();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(IDB_STORE, 'readonly');
+    const req = tx.objectStore(IDB_STORE).getAll();
+    req.onsuccess = () => resolve(req.result || []);
+    req.onerror = () => reject(req.error);
+  });
+}
+async function idbDeletePending(clientId) {
+  const db = await idbOpen();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(IDB_STORE, 'readwrite');
+    tx.objectStore(IDB_STORE).delete(clientId);
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+  });
+}
+
+// Cache générique "dernière valeur connue" : alimenté à chaque chargement réussi en ligne,
+// utilisé comme repli quand une requête échoue faute de connexion (voir isNetworkError).
+async function idbCacheSet(key, value) {
+  try {
+    const db = await idbOpen();
+    return new Promise((resolve) => {
+      const tx = db.transaction(IDB_CACHE_STORE, 'readwrite');
+      tx.objectStore(IDB_CACHE_STORE).put({ key, value, cachedAt: Date.now() });
+      tx.oncomplete = () => resolve();
+      tx.onerror = () => resolve(); // le cache n'est qu'un confort : une erreur ici ne doit rien bloquer
+    });
+  } catch (e) { /* IndexedDB indisponible : tant pis, pas de cache */ }
+}
+async function idbCacheGet(key) {
+  try {
+    const db = await idbOpen();
+    return new Promise((resolve) => {
+      const tx = db.transaction(IDB_CACHE_STORE, 'readonly');
+      const req = tx.objectStore(IDB_CACHE_STORE).get(key);
+      req.onsuccess = () => resolve(req.result ? req.result.value : null);
+      req.onerror = () => resolve(null);
+    });
+  } catch (e) { return null; }
+}
+
+let syncingNow = false;
+let sessionExpiredForSync = false; // évite de marteler le serveur avec des requêtes vouées à l'échec tant que l'utilisateur ne s'est pas reconnecté
+
+async function syncPendingFiches(opts = {}) {
+  if (syncingNow || !navigator.onLine || !currentUser) { updateOfflineBanner(); return; }
+  if (sessionExpiredForSync && !opts.manual) { updateOfflineBanner(); return; }
+  syncingNow = true;
+  let okCount = 0, orphanCount = 0;
+  const failures = [];
+  let sessionExpired = false;
+  try {
+    const pending = await idbGetAllPending();
+    for (const entry of pending) {
+      if (entry.orphaned) continue; // déjà identifié comme non-synchronisable, voir showOrphanedFiches()
+      try {
+        await api('/questionnaires/' + entry.questionnaireId + '/fiches', {
+          method: 'POST', body: { data: entry.data, clientId: entry.clientId }
+        });
+        await idbDeletePending(entry.clientId);
+        okCount++;
+      } catch (e) {
+        if (e.isNetworkError) {
+          // La connexion est tombée en plein milieu de la synchronisation : inutile d'essayer
+          // les suivantes maintenant, elles échoueront pour la même raison. On s'arrête sans
+          // spammer d'erreurs — la synchronisation se relance automatiquement dès le retour du réseau.
+          break;
+        }
+        if (e.status === 401) {
+          // La session a expiré pendant que la réponse attendait hors-ligne : inutile de continuer
+          // à essayer les autres, elles échoueront pour la même raison. On s'arrête et on prévient.
+          sessionExpired = true;
+          break;
+        }
+        if (e.status === 404) {
+          // Le questionnaire visé n'existe plus (supprimé, ou recréé avec un nouvel identifiant) :
+          // retenter indéfiniment ne servirait à rien. On marque l'entrée pour ne plus la retenter
+          // automatiquement, sans effacer la réponse : l'utilisateur peut la consulter et décider.
+          await idbSavePending({ ...entry, orphaned: true, orphanReason: e.message });
+          orphanCount++;
+          continue;
+        }
+        console.warn('Synchronisation différée pour', entry.clientId, ':', e.message);
+        failures.push({ entry, message: e.message });
+      }
+    }
+  } finally {
+    syncingNow = false;
+    updateOfflineBanner();
+    if (activeQuestionnaire && document.getElementById('tab-registre').classList.contains('active')) loadFiches();
+
+    if (sessionExpired) {
+      sessionExpiredForSync = true;
+      showErr(t('Ta session a expiré pendant que des réponses attendaient hors-ligne. Reconnecte-toi pour les synchroniser.', 'Lany ny fotoam-pidiranao raha mbola niandry ny valiny. Midira indray mba hampifandraisana azy.'));
+    }
+    if (okCount > 0) {
+      showOk(okCount + ' ' + t('réponse(s) synchronisée(s).', 'valiny nampifandraisina.'));
+    }
+    if (orphanCount > 0) {
+      showErr(
+        orphanCount + ' ' + t('réponse(s) hors-ligne visent un questionnaire qui n\'existe plus. Vois le détail dans la bannière ci-dessus.', "valiny tao anaty solosaina no mikendry fanontaniana tsy misy intsony. Jereo eo amin'ny banniera eo ambony.")
+      );
+    }
+    if (failures.length > 0) {
+      const first = failures[0].message;
+      showErr(
+        failures.length + ' ' + t('réponse(s) n\'ont pas pu être synchronisées : ', "valiny tsy voafandray: ") + first +
+        t('. Nouvelle tentative automatique sous peu.', '. Handramana avy hatrany.')
+      );
+    } else if (opts.manual && okCount === 0 && orphanCount === 0 && !sessionExpired) {
+      showInfo(t('Rien à synchroniser.', 'Tsy misy hampifandraisina.'));
+    }
+  }
+}
+
+async function updateOfflineBanner() {
+  const banner = document.getElementById('offline-banner');
+  const text = document.getElementById('offline-banner-text');
+  const viewBtn = document.getElementById('offline-view-btn');
+  const syncBtn = document.getElementById('offline-sync-btn');
+  if (!banner || !text) return;
+  let all = [];
+  try { all = await idbGetAllPending(); } catch (e) { /* IndexedDB indisponible */ }
+  const orphaned = all.filter(e => e.orphaned);
+  const pendingCount = all.length - orphaned.length;
+
+  viewBtn.classList.toggle('hidden', orphaned.length === 0);
+
+  if (!navigator.onLine) {
+    banner.classList.add('show');
+    text.textContent = t('Pas de connexion internet.', 'Tsy misy fifandraisana internet.') +
+      (pendingCount ? ' ' + pendingCount + ' ' + t('réponse(s) en attente de synchronisation.', 'valiny miandry hifandray.') : '');
+    syncBtn.style.display = 'none';
+  } else if (pendingCount > 0) {
+    banner.classList.add('show');
+    text.textContent = pendingCount + ' ' + t('réponse(s) enregistrée(s) hors-ligne, en attente de synchronisation.', 'valiny voatahiry tao anaty solosaina, miandry hifandray.');
+    syncBtn.style.display = 'inline-flex';
+  } else if (orphaned.length > 0) {
+    banner.classList.add('show');
+    text.textContent = orphaned.length + ' ' + t('réponse(s) hors-ligne n\'ont pas pu être synchronisées.', "valiny tao anaty solosaina tsy voafandray.");
+    syncBtn.style.display = 'none';
+  } else {
+    banner.classList.remove('show');
+  }
+}
+window.addEventListener('online', () => { updateOfflineBanner(); syncPendingFiches(); });
+window.addEventListener('offline', updateOfflineBanner);
+
+// Filet de sécurité : l'évènement 'online' du navigateur n'est pas toujours fiable à 100%
+// (selon l'appareil/le navigateur). On retente donc aussi périodiquement, et à chaque fois
+// que l'app repasse au premier plan (utile sur mobile après avoir changé d'application).
+setInterval(() => { if (navigator.onLine) syncPendingFiches(); }, 30000);
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible' && navigator.onLine) syncPendingFiches();
+});
+
+async function showOrphanedFiches() {
+  const all = await idbGetAllPending();
+  const orphaned = all.filter(e => e.orphaned);
+  const list = document.getElementById('orphan-list');
+  if (!orphaned.length) { list.innerHTML = ''; document.getElementById('orphan-overlay').classList.remove('open'); return; }
+
+  list.innerHTML = orphaned.map((entry, i) => `
+    <div class="card" style="margin-bottom:0;padding:12px">
+      <strong style="font-size:13px">${escapeHtml(entry.title || '—')}</strong>
+      <p style="font-size:11px;color:var(--muted);margin:2px 0 8px">${new Date(entry.createdAt).toLocaleString('fr-FR')}</p>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-sm" style="flex:1;justify-content:center" onclick="copyOrphanData('${entry.clientId}')">
+          ${icon('copy')} <span>${t('Copier les données', 'Adikao ny angona')}</span>
+        </button>
+        <button class="btn btn-sm btn-danger" style="flex:1;justify-content:center" onclick="discardOrphanFiche('${entry.clientId}')">
+          ${icon('trash')} <span>${t('Supprimer', 'Fafao')}</span>
+        </button>
+      </div>
+    </div>
+  `).join('');
+  document.getElementById('orphan-overlay').classList.add('open');
+}
+
+async function copyOrphanData(clientId) {
+  const all = await idbGetAllPending();
+  const entry = all.find(e => e.clientId === clientId);
+  if (!entry) return;
+  try {
+    await navigator.clipboard.writeText(JSON.stringify(entry.data, null, 2));
+    showOk(t('Données copiées dans le presse-papiers.', 'Voadika tao amin\'ny clipboard ny angona.'));
+  } catch (e) {
+    showErr(t('Impossible de copier automatiquement. Ouvre la console du navigateur pour voir les données.', 'Tsy azo adika ho azy. Sokafy ny console mba hahitana ny angona.'));
+    console.log('Données de la réponse orpheline', clientId, ':', entry.data);
+  }
+}
+
+async function discardOrphanFiche(clientId) {
+  const ok = await showConfirm(t('Supprimer définitivement cette réponse ? Cette action est irréversible.', 'Hofafana tanteraka ity valiny ity? Tsy azo averina intsony.'));
+  if (!ok) return;
+  await idbDeletePending(clientId);
+  updateOfflineBanner();
+  showOrphanedFiches(); // ré-affiche la liste mise à jour (ou ferme si elle est vide)
+}
+
+// ─────────────────────────────────────────────
+// APPEL API
+// ─────────────────────────────────────────────
+async function api(path, opts = {}) {
+  let res;
+  try {
+    res = await fetch('/api' + path, {
+      method: opts.method || 'GET',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: opts.body ? JSON.stringify(opts.body) : undefined
+    });
+  } catch (networkErr) {
+    // Le navigateur ne peut même pas joindre le serveur (pas de connexion, DNS, etc.) —
+    // "Failed to fetch" n'est pas un message compréhensible pour l'utilisateur, on le remplace.
+    const err = new Error(t('Pas de connexion internet. Vérifie ta connexion et réessaie.', 'Tsy misy fifandraisana internet. Jereo ny fifandraisanao ary andramo indray.'));
+    err.status = 0;
+    err.isNetworkError = true;
+    throw err;
+  }
+  let json = null;
+  try { json = await res.json(); } catch (e) { /* pas de corps JSON */ }
+  if (!res.ok) {
+    const err = new Error((json && json.error) || ('Erreur ' + res.status));
+    err.status = res.status; // permet aux appelants de distinguer 401 (session expirée) de 404 (introuvable), etc.
+    throw err;
+  }
+  return json;
+}
+
+let toastSeq = 0;
+function showToast(type, msg, duration) {
+  const container = document.getElementById('toast-container');
+  const id = 'toast-' + (++toastSeq);
+  const el = document.createElement('div');
+  el.className = 'toast toast-' + type;
+  el.id = id;
+  el.innerHTML = icon(type === 'ok' ? 'check' : type === 'info' ? 'info' : 'warn', 18) +
+    '<span class="toast-msg"></span>' +
+    '<button class="toast-close" onclick="dismissToast(\'' + id + '\')" aria-label="Fermer">' + icon('x', 14) + '</button>';
+  el.querySelector('.toast-msg').textContent = msg; // textContent : pas d'injection HTML depuis les messages d'erreur
+  container.appendChild(el);
+  requestAnimationFrame(() => el.classList.add('show'));
+  const d = duration ?? (type === 'ok' ? 3500 : 6000);
+  if (d > 0) setTimeout(() => dismissToast(id), d);
+  return id;
+}
+function dismissToast(id) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.classList.remove('show');
+  setTimeout(() => el.remove(), 200);
+}
+function showOk(msg) { showToast('ok', msg); }
+function showInfo(msg, duration) { showToast('info', msg, duration); }
+function showErr(msg, duration) { showToast('err', msg, duration); }
+
+// Remplace window.confirm() par une modale cohérente avec le design de l'app.
+// Retourne une Promise<boolean> — s'utilise avec await.
+function showConfirm(message, opts = {}) {
+  return new Promise((resolve) => {
+    const overlay = document.getElementById('confirm-overlay');
+    document.getElementById('confirm-message').textContent = message;
+    document.getElementById('confirm-icon').innerHTML = icon(opts.danger === false ? 'warn' : 'trash', 22);
+    document.getElementById('confirm-icon').className = 'confirm-icon' + (opts.danger === false ? ' info' : '');
+    const okBtn = document.getElementById('confirm-ok-btn');
+    const cancelBtn = document.getElementById('confirm-cancel-btn');
+    okBtn.textContent = opts.confirmLabel || t('Confirmer', 'Ekeo');
+    cancelBtn.textContent = opts.cancelLabel || t('Annuler', 'Aza');
+    okBtn.className = 'btn ' + (opts.danger === false ? 'btn-prim' : 'btn-danger');
+    overlay.classList.add('open');
+
+    function cleanup(result) {
+      overlay.classList.remove('open');
+      okBtn.removeEventListener('click', onOk);
+      cancelBtn.removeEventListener('click', onCancel);
+      overlay.removeEventListener('click', onOverlay);
+      resolve(result);
+    }
+    function onOk() { cleanup(true); }
+    function onCancel() { cleanup(false); }
+    function onOverlay(e) { if (e.target === overlay) cleanup(false); }
+    okBtn.addEventListener('click', onOk);
+    cancelBtn.addEventListener('click', onCancel);
+    overlay.addEventListener('click', onOverlay);
+  });
+}
+
+// ─────────────────────────────────────────────
+// AUTHENTIFICATION
+// ─────────────────────────────────────────────
+function hideAllAuthForms() {
+  ['login-form', 'register-form', 'forgot-form', 'reset-form'].forEach(id => document.getElementById(id).classList.add('hidden'));
+}
+function showLogin() { hideAllAuthForms(); document.getElementById('login-form').classList.remove('hidden'); }
+function showRegister() { hideAllAuthForms(); document.getElementById('register-form').classList.remove('hidden'); }
+function showForgot() { hideAllAuthForms(); document.getElementById('forgot-form').classList.remove('hidden'); }
+function showResetForm() { hideAllAuthForms(); document.getElementById('reset-form').classList.remove('hidden'); }
+
+let resetTokenFromUrl = null;
+function checkResetTokenInUrl() {
+  const params = new URLSearchParams(window.location.search);
+  const token = params.get('reset_token');
+  if (token) {
+    resetTokenFromUrl = token;
+    showResetForm();
+    // nettoie l'URL pour ne pas garder le token affiché/partageable dans la barre d'adresse
+    window.history.replaceState({}, '', window.location.pathname);
+  }
+}
+
+async function requestPasswordReset() {
+  try {
+    const email = document.getElementById('forgot-email').value.trim();
+    if (!email) { showErr(t('Email requis.', 'Ilaina ny mailaka.')); return; }
+    const res = await api('/auth/forgot-password', { method: 'POST', body: { email } });
+    showOk(res.message || t('Si un compte existe, un email a été envoyé.', 'Raha misy kaonty, dia nalefa ny mailaka.'));
+  } catch (e) { showErr(e.message); }
+}
+
+async function submitPasswordReset() {
+  try {
+    const password = document.getElementById('reset-password').value;
+    if (!resetTokenFromUrl) { showErr(t('Lien invalide.', 'Diso ny rohy.')); return; }
+    if (password.length < 6) { showErr(t('Le mot de passe doit contenir au moins 6 caractères.', 'Tsy maintsy misy marika 6 farafahakeliny ny teny miafina.')); return; }
+    await api('/auth/reset-password', { method: 'POST', body: { token: resetTokenFromUrl, password } });
+    resetTokenFromUrl = null;
+    showLogin();
+    showOk(t('Mot de passe mis à jour. Tu peux te connecter.', 'Voavaozina ny teny miafina. Azonao atao ny miditra.'));
+  } catch (e) { showErr(e.message); }
+}
+
+async function login() {
+  try {
+    const email = document.getElementById('login-email').value.trim();
+    const password = document.getElementById('login-password').value;
+    const user = await api('/auth/login', { method: 'POST', body: { email, password } });
+    onAuthSuccess(user);
+  } catch (e) { showErr(e.message); }
+}
+
+async function register() {
+  try {
+    const name = document.getElementById('reg-name').value.trim();
+    const email = document.getElementById('reg-email').value.trim();
+    const password = document.getElementById('reg-password').value;
+    const user = await api('/auth/register', { method: 'POST', body: { name, email, password } });
+    onAuthSuccess(user);
+  } catch (e) { showErr(e.message); }
+}
+
+async function logout() {
+  try { await api('/auth/logout', { method: 'POST' }); } catch (e) { /* best-effort : on se déconnecte localement même sans réseau */ }
+  currentUser = null;
+  await idbCacheSet('session:user', null);
+  document.getElementById('app-screen').classList.add('hidden');
+  document.getElementById('auth-screen').classList.remove('hidden');
+}
+
+function onAuthSuccess(user) {
+  currentUser = user;
+  sessionExpiredForSync = false;
+  document.getElementById('auth-screen').classList.add('hidden');
+  document.getElementById('app-screen').classList.remove('hidden');
+  document.getElementById('user-name-chip').textContent = user.name || user.email;
+  loadQuestionnaires();
+  syncPendingFiches();
+}
+
+async function checkSession() {
+  try {
+    const user = await api('/auth/me');
+    idbCacheSet('session:user', user);
+    onAuthSuccess(user);
+  } catch (e) {
+    if (e.isNetworkError) {
+      // Impossible de vérifier la session sans réseau : on réutilise la dernière session connue
+      // pour que l'app reste utilisable hors-ligne (données en cache, entretiens en attente...).
+      // Si la session s'avère en réalité expirée, les actions qui nécessitent le serveur
+      // échoueront avec un message clair dès qu'une requête sera tentée (voir showErr/401).
+      const cachedUser = await idbCacheGet('session:user');
+      if (cachedUser) { onAuthSuccess(cachedUser); return; }
+      showInfo(t('Pas de connexion et aucune session locale trouvée. Connecte-toi une première fois en ligne.', 'Tsy misy fifandraisana ary tsy nahitana session eto an-toerana. Midira ao anaty internet aloha.'));
+    }
+    // sinon (401, etc.) → pas connecté, l'écran d'authentification reste affiché normalement
+  }
+}
+
+// ─────────────────────────────────────────────
+// NAVIGATION ONGLETS
+// ─────────────────────────────────────────────
+function go(tabId) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tabId));
+  document.querySelectorAll('.section').forEach(s => s.classList.toggle('active', s.id === tabId));
+  if (tabId === 'tab-liste') loadQuestionnaires();
+  if (tabId === 'tab-entretien') fillQuestionnaireSelect('interview-q-select');
+  if (tabId === 'tab-registre') fillQuestionnaireSelect('registre-q-select').then(() => loadFiches());
+  if (tabId === 'tab-stats') fillQuestionnaireSelect('stats-q-select').then(() => loadStats());
+  if (tabId === 'tab-editeur' && activeQuestionnaire) renderEditor();
+}
+
+// ─────────────────────────────────────────────
+// LISTE DES QUESTIONNAIRES
+// ─────────────────────────────────────────────
+async function loadQuestionnaires() {
+  try {
+    questionnaires = await api('/questionnaires');
+    idbCacheSet('questionnaires:list', questionnaires);
+    renderQuestionnaireList();
+  } catch (e) {
+    if (e.isNetworkError) {
+      const cached = await idbCacheGet('questionnaires:list');
+      if (cached) { questionnaires = cached; renderQuestionnaireList(); return; }
+    }
+    showErr(e.message);
+  }
+}
+
+function renderQuestionnaireList() {
+  const el = document.getElementById('q-list');
+  if (!questionnaires.length) {
+    el.innerHTML = '<div class="empty">' + icon('inbox', 28) + '<div>' +
+      t('Aucun questionnaire pour l\'instant. Crée le premier ci-dessus.', 'Mbola tsy misy fanontaniana. Mamoronà ny voalohany eo ambony.') +
+      '</div></div>';
+    return;
+  }
+  el.innerHTML = questionnaires.map(q => `
+    <div class="q-item">
+      <div class="q-info">
+        <h3>${escapeHtml(q.title)}</h3>
+        <p>${q.nbQuestions} ${t('question(s)', 'fanontaniana')} · ${q.nbReponses} ${t('réponse(s)', 'valiny')}${q.description ? ' · ' + escapeHtml(q.description) : ''}</p>
+      </div>
+      <div class="q-actions">
+        <button class="btn btn-sm" onclick="openForEdit('${q._id}')">${icon('edit')} <span>${t('Éditer', 'Ovay')}</span></button>
+        <button class="btn btn-sm" onclick="openForInterview('${q._id}')">${icon('mic')} <span>${t('Entretien', 'Fanadihadiana')}</span></button>
+        <button class="btn btn-sm" onclick="openForRegistre('${q._id}')">${icon('grid')} <span>${t('Registre', 'Rejisitra')}</span></button>
+        <button class="btn btn-sm" onclick="duplicateQuestionnaire('${q._id}')" aria-label="Dupliquer">${icon('copy')}</button>
+        <button class="btn btn-sm btn-danger" onclick="deleteQuestionnaire('${q._id}')" aria-label="Supprimer">${icon('trash')}</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+async function duplicateQuestionnaire(id) {
+  try {
+    await api('/questionnaires/' + id + '/duplicate', { method: 'POST' });
+    showOk(t('Questionnaire dupliqué.', 'Voadika ny fanontaniana.'));
+    loadQuestionnaires();
+  } catch (e) { showErr(e.message); }
+}
+
+async function createQuestionnaire() {
+  const title = document.getElementById('new-q-title').value.trim();
+  const description = document.getElementById('new-q-desc').value.trim();
+  if (!title) { showErr(t('Le titre est requis.', 'Ilaina ny lohateny.')); return; }
+  try {
+    await api('/questionnaires', { method: 'POST', body: { title, description } });
+    document.getElementById('new-q-title').value = '';
+    document.getElementById('new-q-desc').value = '';
+    showOk(t('Questionnaire créé.', 'Voaforona ny fanontaniana.'));
+    loadQuestionnaires();
+  } catch (e) { showErr(e.message); }
+}
+
+async function deleteQuestionnaire(id) {
+  const ok = await showConfirm(t('Supprimer ce questionnaire et toutes ses réponses ? Cette action est irréversible.', "Hofafana ity fanontaniana ity mbamin'ny valiny rehetra? Tsy azo averina intsony."));
+  if (!ok) return;
+  try {
+    await api('/questionnaires/' + id, { method: 'DELETE' });
+    showOk(t('Questionnaire supprimé.', 'Voafafa ny fanontaniana.'));
+    loadQuestionnaires();
+  } catch (e) { showErr(e.message); }
+}
+
+async function openForEdit(id) {
+  await loadActiveQuestionnaire(id);
+  go('tab-editeur');
+}
+async function openForInterview(id) {
+  await loadActiveQuestionnaire(id);
+  go('tab-entretien');
+  document.getElementById('interview-q-select').value = id;
+}
+async function openForRegistre(id) {
+  await loadActiveQuestionnaire(id);
+  regPage = 1; regSearch = '';
+  const searchInput = document.getElementById('registre-search');
+  if (searchInput) searchInput.value = '';
+  go('tab-registre');
+  document.getElementById('registre-q-select').value = id;
+  loadFiches();
+}
+
+async function loadActiveQuestionnaire(id) {
+  try {
+    activeQuestionnaire = await api('/questionnaires/' + id);
+    idbCacheSet('questionnaire:' + id, activeQuestionnaire);
+  } catch (e) {
+    if (e.isNetworkError) {
+      const cached = await idbCacheGet('questionnaire:' + id);
+      if (cached) { activeQuestionnaire = cached; return; }
+    }
+    showErr(e.message);
+  }
+}
+
+async function fillQuestionnaireSelect(selectId) {
+  if (!questionnaires.length) await loadQuestionnaires();
+  const sel = document.getElementById(selectId);
+  const prevVal = sel.value;
+  sel.innerHTML = questionnaires.length
+    ? questionnaires.map(q => `<option value="${q._id}">${escapeHtml(q.title)}</option>`).join('')
+    : `<option value="">${t('— Aucun questionnaire —', '— Tsy misy fanontaniana —')}</option>`;
+  if (prevVal && questionnaires.some(q => q._id === prevVal)) sel.value = prevVal;
+  else if (activeQuestionnaire && questionnaires.some(q => q._id === activeQuestionnaire._id)) sel.value = activeQuestionnaire._id;
+  // Le <select> peut s'être positionné tout seul sur la première option (comportement HTML standard
+  // quand on remplit un <select> vide). On s'assure donc que activeQuestionnaire correspond bien à ce
+  // qui est affiché, sinon les onglets Registre/Statistiques resteraient vides sans message d'erreur.
+  if (sel.value && (!activeQuestionnaire || activeQuestionnaire._id !== sel.value)) {
+    await loadActiveQuestionnaire(sel.value);
+  }
+  return sel;
+}
+
+async function onSelectActiveQuestionnaire(selectId) {
+  const id = document.getElementById(selectId).value;
+  if (!id) { activeQuestionnaire = null; return; }
+  await loadActiveQuestionnaire(id);
+  if (selectId === 'registre-q-select') {
+    regPage = 1; regSearch = '';
+    const searchInput = document.getElementById('registre-search');
+    if (searchInput) searchInput.value = '';
+    loadFiches();
+  }
+  if (selectId === 'stats-q-select') loadStats();
+}
+
+// ─────────────────────────────────────────────
+// ÉDITEUR DE QUESTIONS
+// ─────────────────────────────────────────────
+const ALLOWED_TYPES_CLIENT = ['sel', 'multi', 'txt', 'textarea', 'date', 'num', 'consent', 'scale', 'geo', 'photo'];
+
+function typeLabels() {
+  return {
+    sel:      t('Choix unique (liste)', 'Safidy tokana (lisitra)'),
+    multi:    t('Choix multiples (cases)', 'Safidy maro (efajoro)'),
+    txt:      t('Texte court', 'Lahatsoratra fohy'),
+    textarea: t('Texte long', 'Lahatsoratra lava'),
+    date:     t('Date', 'Daty'),
+    num:      t('Nombre', 'Isa'),
+    consent:  t('Consentement RGPD', 'Fanekena RGPD'),
+    scale:    t('Échelle numérique', 'Mari-pandrefesana isa'),
+    geo:      t('Géolocalisation', 'Toerana (GPS)'),
+    photo:    t('Photo', 'Sary')
+  };
+}
+
+const QUESTION_TEMPLATES = {
+  consent_rgpd: {
+    label: { fr: 'Modèle : Consentement RGPD', mg: 'Modely: Fanekena RGPD' },
+    questions: [{ type: 'consent', block: 'RGPD',
+      fr: 'Je confirme avoir informé la personne de ses droits et recueilli son consentement libre et éclairé.',
+      mg: 'Manamarina aho fa nampahafantatra ny zony ilay olona ary nahazo ny fanekeny an-tsitrapo sy mazava.' }]
+  },
+  profil_socio: {
+    label: { fr: 'Modèle : Profil socio-démographique', mg: 'Modely: Mombamomba ara-tsosialy' },
+    questions: [
+      { type: 'num', block: 'Profil', fr: 'Quel est votre âge ?', mg: 'Firy taona ianao?' },
+      { type: 'sel', block: 'Profil', fr: 'Quel est votre sexe ?', mg: 'Lahy sa vavy ianao?',
+        options: [{ v: 'Homme', fr: 'Homme', mg: 'Lahy' }, { v: 'Femme', fr: 'Femme', mg: 'Vavy' }] },
+      { type: 'sel', block: 'Profil', fr: "Quel est votre niveau d'études ?", mg: 'Inona ny ambaratongam-pianaranao?',
+        options: [{ v: 'Aucun', fr: 'Aucun', mg: 'Tsy nianatra' }, { v: 'Primaire', fr: 'Primaire', mg: 'Fahalimam-pianarana' },
+                  { v: 'Secondaire', fr: 'Secondaire', mg: 'Ambaratonga faharoa' }, { v: 'Supérieur', fr: 'Supérieur', mg: 'Ambony' }] }
+    ]
+  }
+};
+
+function draftKey(id) { return 'tahiry-draft-' + id; }
+function saveDraftLocal() {
+  if (!activeQuestionnaire || !activeQuestionnaire._id) return;
+  try {
+    localStorage.setItem(draftKey(activeQuestionnaire._id), JSON.stringify({
+      title: activeQuestionnaire.title, description: activeQuestionnaire.description,
+      questions: activeQuestionnaire.questions, savedAt: Date.now()
+    }));
+  } catch (e) { /* quota dépassé ou navigation privée : ignoré silencieusement */ }
+}
+function checkDraft() {
+  if (!activeQuestionnaire || !activeQuestionnaire._id) return null;
+  try {
+    const raw = localStorage.getItem(draftKey(activeQuestionnaire._id));
+    if (!raw) return null;
+    const draft = JSON.parse(raw);
+    if (activeQuestionnaire.updatedAt && draft.savedAt <= new Date(activeQuestionnaire.updatedAt).getTime()) return null;
+    return draft;
+  } catch (e) { return null; }
+}
+function restoreDraft() {
+  const draft = checkDraft();
+  if (!draft) return;
+  activeQuestionnaire.title = draft.title;
+  activeQuestionnaire.description = draft.description;
+  activeQuestionnaire.questions = draft.questions;
+  renderEditor();
+  showOk(t('Brouillon restauré.', 'Naverina ny sombiny.'));
+}
+function discardDraft() {
+  if (activeQuestionnaire && activeQuestionnaire._id) localStorage.removeItem(draftKey(activeQuestionnaire._id));
+  renderEditor();
+}
+function clearDraft() {
+  if (activeQuestionnaire && activeQuestionnaire._id) localStorage.removeItem(draftKey(activeQuestionnaire._id));
+}
+
+function renderEditor() {
+  document.getElementById('editor-active-title').textContent = activeQuestionnaire.title;
+  const body = document.getElementById('editor-body');
+  const qs = [...activeQuestionnaire.questions].sort((a, b) => a.order - b.order);
+
+  let html = '';
+  const draft = checkDraft();
+  if (draft) {
+    html += `<div class="card draft-banner">
+      <div class="card-title">${icon('warn')} <span>${t('Brouillon non enregistré trouvé', 'Nisy sombiny tsy voatahiry')}</span></div>
+      <p style="font-size:13px;margin-bottom:10px">${t('Modifié le ', "Novaina tamin'ny ")}${new Date(draft.savedAt).toLocaleString('fr-FR')}</p>
+      <div class="row-actions" style="margin-top:0">
+        <button class="btn btn-prim" onclick="restoreDraft()">${t('Restaurer', 'Avereno')}</button>
+        <button class="btn" onclick="discardDraft()">${t('Ignorer', 'Aza raharahaina')}</button>
+      </div>
+    </div>`;
+  }
+
+  html += `<div class="card"><div class="card-title">${t('Paramètres généraux', 'Fandaharana ankapobeny')}</div>
+    <div class="fgroup"><label>${t('Titre', 'Lohateny')}</label>
+      <input type="text" id="edit-title" value="${escapeAttr(activeQuestionnaire.title)}" oninput="activeQuestionnaire.title=this.value;saveDraftLocal();"></div>
+    <div class="fgroup"><label>${t('Description', 'Famaritana')}</label>
+      <input type="text" id="edit-desc" value="${escapeAttr(activeQuestionnaire.description || '')}" oninput="activeQuestionnaire.description=this.value;saveDraftLocal();"></div>
+  </div>`;
+
+  html += `<div class="card">
+    <div class="card-title"><span class="ct-left">${t('Questions', 'Fanontaniana')}</span><span class="chip">${qs.length}</span></div>
+    <div class="toolbar" style="justify-content:flex-start">
+      <button class="btn btn-sm" onclick="previewQuestionnaire()">${icon('eye')} <span>${t('Aperçu', 'Topi-maso')}</span></button>
+      <input type="file" accept=".csv,text/csv" id="import-csv-input" class="hidden" onchange="importQuestionsCSV(this)">
+      <button class="btn btn-sm" onclick="document.getElementById('import-csv-input').click()">${icon('upload')} <span>${t('Importer (CSV)', 'Ampidiro (CSV)')}</span></button>
+      <button class="btn btn-sm" onclick="downloadCSVTemplate()">${icon('fileText')} <span>${t('Modèle CSV', 'Modely CSV')}</span></button>
+    </div>
+    <div class="toolbar" style="justify-content:flex-start">
+      <select id="template-select" style="flex:1;min-width:200px">
+        ${Object.entries(QUESTION_TEMPLATES).map(([k, v]) => `<option value="${k}">${t(v.label.fr, v.label.mg)}</option>`).join('')}
+      </select>
+      <button class="btn btn-sm" onclick="insertTemplate(document.getElementById('template-select').value)">${icon('plus')} <span>${t('Insérer le modèle', 'Ampidiro ny modely')}</span></button>
+    </div>`;
+  qs.forEach((q, i) => { html += renderQuestionEditorRow(q, i, qs.length, qs); });
+  html += `<button class="btn" onclick="addQuestion()">${icon('plus')} <span>${t('Ajouter une question', 'Ampio fanontaniana')}</span></button>`;
+  html += `</div>`;
+
+  html += `<div class="row-actions">
+    <button class="btn btn-prim" style="flex:2" onclick="saveQuestionnaire()">${icon('save')} <span>${t('Enregistrer le questionnaire', 'Tehirizo ny fanontaniana')}</span></button>
+  </div>`;
+
+  body.innerHTML = html;
+}
+
+function renderQuestionEditorRow(q, i, total, allQs) {
+  const labels = typeLabels();
+  const typeOptions = Object.entries(labels).map(([v, label]) =>
+    `<option value="${v}" ${q.type === v ? 'selected' : ''}>${label}</option>`).join('');
+  const needsOptions = q.type === 'sel' || q.type === 'multi';
+
+  let optsHtml = '';
+  if (needsOptions) {
+    optsHtml += `<div style="margin-top:10px"><label style="font-size:12px;font-weight:600;color:var(--muted)">${t('Options de réponse', 'Safidy valiny')}</label>`;
+    (q.options || []).forEach((o, oi) => {
+      optsHtml += `<div class="qe-opt-row">
+        <input type="text" placeholder="${t('Libellé FR', 'Lazaina FR')}" value="${escapeAttr(o.fr)}" oninput="updateOption(${i},${oi},'fr',this.value)">
+        <input type="text" placeholder="${t('Traduction Malagasy', 'Fandikana Malagasy')}" value="${escapeAttr(o.mg || '')}" oninput="updateOption(${i},${oi},'mg',this.value)">
+        <button class="btn btn-sm btn-danger" onclick="removeOption(${i},${oi})" aria-label="Supprimer l'option">${icon('x')}</button>
+      </div>`;
+    });
+    optsHtml += `<button class="btn btn-sm" onclick="addOption(${i})">${icon('plus')} <span>${t('Option', 'Safidy')}</span></button>`;
+    if (q.type === 'multi') {
+      optsHtml += `<label class="check" style="margin-top:8px">
+        <input type="checkbox" ${q.autre ? 'checked' : ''} onchange="updateQuestion(${i},'autre',this.checked)">
+        <span>${t('Ajouter un champ libre "Autre..."', 'Ampio saha malalaka "Hafa..."')}</span></label>`;
+    }
+    optsHtml += `</div>`;
+  }
+
+  let scaleHtml = '';
+  if (q.type === 'scale') {
+    scaleHtml = `<div class="qe-row" style="margin-top:10px">
+      <div class="fgroup" style="margin-bottom:0"><label>${t('Valeur minimale', 'Farany kely')}</label>
+        <input type="number" value="${q.scaleMin ?? 1}" oninput="updateQuestion(${i},'scaleMin',parseInt(this.value)||1)"></div>
+      <div class="fgroup" style="margin-bottom:0"><label>${t('Valeur maximale', 'Farany be')}</label>
+        <input type="number" value="${q.scaleMax ?? 5}" oninput="updateQuestion(${i},'scaleMax',parseInt(this.value)||5)"></div>
+    </div>`;
+  }
+
+  const otherQs = allQs.filter(oq => oq.id !== q.id && oq.fr.trim());
+  const showIf = q.showIf || null;
+  const opLabels = { eq: t('est égal à', "mitovy amin'ny"), neq: t('est différent de', "tsy mitovy amin'ny"), contains: t('contient', 'misy') };
+  const showIfHtml = `<div class="fgroup" style="margin-top:10px;margin-bottom:0">
+    <label>${t("Condition d'affichage (optionnel)", 'Fepetra fampisehoana (tsy voatery)')}</label>
+    <select onchange="updateShowIfField(${i}, this.value)">
+      <option value="">${t('Toujours afficher', 'Aseho foana')}</option>
+      ${otherQs.map(oq => `<option value="${escapeAttr(oq.field)}" ${showIf && showIf.field === oq.field ? 'selected' : ''}>${escapeHtml(oq.fr)}</option>`).join('')}
+    </select>
+    ${showIf && showIf.field ? `
+      <div class="showif-row">
+        <select onchange="updateShowIfOp(${i}, this.value)">
+          ${Object.entries(opLabels).map(([k, l]) => `<option value="${k}" ${showIf.op === k ? 'selected' : ''}>${l}</option>`).join('')}
+        </select>
+        <input type="text" placeholder="${t('valeur', 'sanda')}" value="${escapeAttr(showIf.value || '')}" oninput="updateShowIfValue(${i}, this.value)">
+      </div>` : ''}
+  </div>`;
+
+  return `<div class="q-editor-item">
+    <div class="qe-head">
+      <strong>Q${i + 1}</strong>
+      <div class="qe-order-btns">
+        <button class="btn btn-sm" ${i === 0 ? 'disabled' : ''} onclick="moveQuestion(${i},-1)" aria-label="Monter">${icon('chevUp')}</button>
+        <button class="btn btn-sm" ${i === total - 1 ? 'disabled' : ''} onclick="moveQuestion(${i},1)" aria-label="Descendre">${icon('chevDn')}</button>
+        <button class="btn btn-sm btn-danger" onclick="removeQuestion(${i})" aria-label="Supprimer la question">${icon('trash')}</button>
+      </div>
+    </div>
+    <div class="qe-row">
+      <div class="fgroup" style="margin-bottom:0"><label>${t('Bloc / section (optionnel)', 'Vondrona (tsy voatery)')}</label>
+        <input type="text" value="${escapeAttr(q.block)}" placeholder="Ex: A" oninput="updateQuestion(${i},'block',this.value)"></div>
+      <div class="fgroup" style="margin-bottom:0"><label>${t('Type de réponse', 'Karazana valiny')}</label>
+        <select onchange="updateQuestion(${i},'type',this.value)">${typeOptions}</select></div>
+    </div>
+    <div class="qe-row">
+      <div class="fgroup" style="margin-bottom:0"><label>${t('Question (français)', 'Fanontaniana (frantsay)')}</label>
+        <input type="text" value="${escapeAttr(q.fr)}" oninput="updateQuestion(${i},'fr',this.value)"></div>
+      <div class="fgroup" style="margin-bottom:0">
+        <label>${t('Traduction en malagasy', "Fandikana amin'ny Malagasy")}</label>
+        <input type="text" value="${escapeAttr(q.mg || '')}" oninput="updateQuestion(${i},'mg',this.value)">
+        <span class="mg-hint">${t('Recommandé : aide beaucoup à bien expliquer la question aux répondants.', "Tsara raisina an-tsaina: manampy be amin'ny fanazavana ny fanontaniana amin'ny mpamaly.")}</span>
+      </div>
+    </div>
+    <label class="check" style="margin-bottom:0">
+      <input type="checkbox" ${q.required ? 'checked' : ''} onchange="updateQuestion(${i},'required',this.checked)">
+      <span>${t('Question obligatoire', 'Fanontaniana tsy maintsy valiana')}</span></label>
+    ${scaleHtml}
+    ${optsHtml}
+    ${showIfHtml}
+  </div>`;
+}
+
+function uid() { return 'q' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6); }
+
+function addQuestion() {
+  const order = activeQuestionnaire.questions.length;
+  activeQuestionnaire.questions.push({
+    id: uid(), field: uid(), block: '', fr: '', mg: '', type: 'txt', options: [], autre: false, required: false,
+    order, scaleMin: 1, scaleMax: 5, showIf: null
+  });
+  saveDraftLocal();
+  renderEditor();
+}
+function removeQuestion(i) {
+  activeQuestionnaire.questions.splice(i, 1);
+  activeQuestionnaire.questions.forEach((q, idx) => q.order = idx);
+  saveDraftLocal();
+  renderEditor();
+}
+function moveQuestion(i, dir) {
+  const qs = activeQuestionnaire.questions;
+  const j = i + dir;
+  if (j < 0 || j >= qs.length) return;
+  [qs[i], qs[j]] = [qs[j], qs[i]];
+  qs.forEach((q, idx) => q.order = idx);
+  saveDraftLocal();
+  renderEditor();
+}
+function updateQuestion(i, key, val) {
+  activeQuestionnaire.questions[i][key] = val;
+  saveDraftLocal();
+  if (key === 'type') renderEditor();
+}
+function addOption(qi) {
+  if (!activeQuestionnaire.questions[qi].options) activeQuestionnaire.questions[qi].options = [];
+  activeQuestionnaire.questions[qi].options.push({ v: uid(), fr: '', mg: '' });
+  saveDraftLocal();
+  renderEditor();
+}
+function removeOption(qi, oi) {
+  activeQuestionnaire.questions[qi].options.splice(oi, 1);
+  saveDraftLocal();
+  renderEditor();
+}
+function updateOption(qi, oi, key, val) {
+  const opt = activeQuestionnaire.questions[qi].options[oi];
+  opt[key] = val;
+  if (key === 'fr') opt.v = val;
+  saveDraftLocal();
+}
+function updateShowIfField(i, field) {
+  const q = activeQuestionnaire.questions[i];
+  q.showIf = field ? { field, op: 'eq', value: '' } : null;
+  saveDraftLocal();
+  renderEditor();
+}
+function updateShowIfOp(i, op) {
+  activeQuestionnaire.questions[i].showIf.op = op;
+  saveDraftLocal();
+}
+function updateShowIfValue(i, val) {
+  activeQuestionnaire.questions[i].showIf.value = val;
+  saveDraftLocal();
+}
+
+function insertTemplate(key) {
+  const tpl = QUESTION_TEMPLATES[key];
+  if (!tpl || !activeQuestionnaire) return;
+  let order = activeQuestionnaire.questions.length;
+  tpl.questions.forEach(tq => {
+    activeQuestionnaire.questions.push({
+      id: uid(), field: uid(), block: tq.block || '', fr: tq.fr, mg: tq.mg || '',
+      type: tq.type, options: (tq.options || []).map(o => ({ ...o })), autre: false, required: false,
+      order: order++, scaleMin: 1, scaleMax: 5, showIf: null
+    });
+  });
+  saveDraftLocal();
+  renderEditor();
+  showOk(t('Modèle ajouté.', 'Voampiditra ny modely.'));
+}
+
+function downloadCSVTemplate() {
+  const csv = 'bloc,question_fr,question_mg,type,obligatoire,options_fr,options_mg\r\n' +
+    'A,Quel est votre âge ?,Firy taona ianao?,num,oui,,\r\n' +
+    "A,Quel est votre sexe ?,Lahy sa vavy ianao?,sel,oui,Homme|Femme,Lahy|Vavy\r\n";
+  downloadBlob(csv, 'modele_questions.csv', 'text/csv;charset=utf-8;');
+}
+
+function parseCSV(text) {
+  const rows = []; let i = 0, field = '', row = [], inQuotes = false;
+  while (i < text.length) {
+    const c = text[i];
+    if (inQuotes) {
+      if (c === '"') { if (text[i + 1] === '"') { field += '"'; i++; } else inQuotes = false; }
+      else field += c;
+    } else {
+      if (c === '"') inQuotes = true;
+      else if (c === ',' || c === ';') { row.push(field); field = ''; }
+      else if (c === '\n' || c === '\r') {
+        if (c === '\r' && text[i + 1] === '\n') i++;
+        row.push(field); field = ''; rows.push(row); row = [];
+      } else field += c;
+    }
+    i++;
+  }
+  if (field || row.length) { row.push(field); rows.push(row); }
+  return rows.filter(r => r.some(c => c.trim() !== ''));
+}
+
+function importQuestionsCSV(input) {
+  const file = input.files[0];
+  if (!file || !activeQuestionnaire) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    try {
+      const rows = parseCSV(e.target.result);
+      if (rows.length < 2) { showErr(t('Fichier CSV vide ou invalide.', 'Tsy misy na diso ny rakitra CSV.')); return; }
+      const header = rows[0].map(h => h.trim().toLowerCase());
+      const idx = (name) => header.indexOf(name);
+      const iBloc = idx('bloc'), iFr = idx('question_fr'), iMg = idx('question_mg'),
+            iType = idx('type'), iReq = idx('obligatoire'), iOptFr = idx('options_fr'), iOptMg = idx('options_mg');
+      if (iFr === -1) { showErr(t('Colonne "question_fr" manquante dans le CSV.', "Tsy misy tsanganana question_fr ao amin'ny CSV.")); return; }
+      const typeMap = { 'choix unique': 'sel', 'choix multiple': 'multi', 'texte court': 'txt', 'texte long': 'textarea',
+        'date': 'date', 'nombre': 'num', 'consentement': 'consent', 'echelle': 'scale', 'échelle': 'scale',
+        'geolocalisation': 'geo', 'géolocalisation': 'geo', 'photo': 'photo' };
+      let order = activeQuestionnaire.questions.length, count = 0;
+      for (let r = 1; r < rows.length; r++) {
+        const row = rows[r];
+        const frText = (row[iFr] || '').trim();
+        if (!frText) continue;
+        let type = (row[iType] || 'txt').trim().toLowerCase();
+        type = ALLOWED_TYPES_CLIENT.includes(type) ? type : (typeMap[type] || 'txt');
+        const optsFr = iOptFr !== -1 ? (row[iOptFr] || '').split('|').map(s => s.trim()).filter(Boolean) : [];
+        const optsMg = iOptMg !== -1 ? (row[iOptMg] || '').split('|').map(s => s.trim()).filter(Boolean) : [];
+        const options = optsFr.map((fr, oi) => ({ v: fr, fr, mg: optsMg[oi] || '' }));
+        activeQuestionnaire.questions.push({
+          id: uid(), field: uid(), block: iBloc !== -1 ? (row[iBloc] || '').trim() : '',
+          fr: frText, mg: iMg !== -1 ? (row[iMg] || '').trim() : '',
+          type, options, autre: false,
+          required: iReq !== -1 ? /^(oui|yes|true|1)$/i.test((row[iReq] || '').trim()) : false,
+          order: order++, scaleMin: 1, scaleMax: 5, showIf: null
+        });
+        count++;
+      }
+      saveDraftLocal();
+      renderEditor();
+      showOk(count + ' ' + t('question(s) importée(s).', 'fanontaniana voaray.'));
+    } catch (err) {
+      showErr(t('Erreur lors de la lecture du fichier CSV.', "Hadisoana tamin'ny famakiana ny CSV."));
+    }
+    input.value = '';
+  };
+  reader.readAsText(file, 'UTF-8');
+}
+
+async function saveQuestionnaire() {
+  activeQuestionnaire.title = document.getElementById('edit-title').value.trim();
+  activeQuestionnaire.description = document.getElementById('edit-desc').value.trim();
+  const emptyQ = activeQuestionnaire.questions.find(q => !q.fr.trim());
+  if (emptyQ) { showErr(t('Chaque question doit avoir un intitulé en français.', 'Tsy maintsy misy lazaina frantsay ny fanontaniana tsirairay.')); return; }
+  try {
+    activeQuestionnaire = await api('/questionnaires/' + activeQuestionnaire._id, {
+      method: 'PUT',
+      body: { title: activeQuestionnaire.title, description: activeQuestionnaire.description, questions: activeQuestionnaire.questions }
+    });
+    clearDraft();
+    showOk(t('Questionnaire enregistré.', 'Voatahiry ny fanontaniana.'));
+    loadQuestionnaires();
+    renderEditor();
+  } catch (e) { showErr(e.message); }
+}
+
+// ─────────────────────────────────────────────
+// MODE ENTRETIEN
+// ─────────────────────────────────────────────
+let iCur = 0, iData = {}, iSteps = [];
+let previewMode = false;         // aperçu depuis l'éditeur : rien n'est enregistré
+let editingFicheId = null;       // non-null si on modifie une fiche existante
+let interviewOrigin = 'tab-entretien'; // onglet vers lequel revenir (Retour / après sauvegarde)
+let currentClientId = null;      // identifiant généré côté client pour la sync hors-ligne
+
+function isStepVisible(s) {
+  if (!s.showIf || !s.showIf.field) return true;
+  const val = iData[s.showIf.field];
+  const cur = Array.isArray(val) ? val.join(', ') : String(val ?? '');
+  const target = s.showIf.value || '';
+  if (s.showIf.op === 'eq') return cur === target;
+  if (s.showIf.op === 'neq') return cur !== target;
+  if (s.showIf.op === 'contains') return cur.includes(target);
+  return true;
+}
+function visibleStepIndices() {
+  return iSteps.map((s, idx) => idx).filter(idx => isStepVisible(iSteps[idx]));
+}
+
+function ouvrirEntretien() {
+  if (!activeQuestionnaire || !activeQuestionnaire.questions.length) {
+    showErr(t('Choisis un questionnaire qui contient au moins une question.', 'Misafidiana fanontaniana misy fanontaniana iray farafahakeliny.'));
+    return;
+  }
+  iSteps = [...activeQuestionnaire.questions].sort((a, b) => a.order - b.order);
+  iCur = 0; iData = {};
+  previewMode = false; editingFicheId = null; interviewOrigin = 'tab-entretien';
+  currentClientId = 'c' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+  go('tab-interview-session');
+  renderStep();
+}
+
+function editFiche(ficheId) {
+  const f = currentFiches.find(x => x._id === ficheId);
+  if (!f || !activeQuestionnaire) return;
+  iSteps = [...activeQuestionnaire.questions].sort((a, b) => a.order - b.order);
+  iData = { ...f.data };
+  iSteps.forEach(s => {
+    if (s.type === 'multi' && typeof iData[s.field] === 'string') {
+      iData[s.field] = iData[s.field].split(', ').filter(Boolean);
+    }
+  });
+  iCur = visibleStepIndices()[0] ?? 0;
+  previewMode = false; editingFicheId = ficheId; interviewOrigin = 'tab-registre'; currentClientId = null;
+  go('tab-interview-session');
+  renderStep();
+}
+
+function previewQuestionnaire() {
+  if (!activeQuestionnaire.questions.length) {
+    showErr(t('Ajoute au moins une question avant de prévisualiser.', "Ampio fanontaniana iray farafahakeliny alohan'ny hijery topi-maso."));
+    return;
+  }
+  iSteps = [...activeQuestionnaire.questions].sort((a, b) => a.order - b.order);
+  iCur = 0; iData = {};
+  previewMode = true; editingFicheId = null; interviewOrigin = 'tab-editeur'; currentClientId = null;
+  go('tab-interview-session');
+  renderStep();
+}
+
+async function fermerEntretien() {
+  const hasProgress = !previewMode && Object.keys(iData).some(k => {
+    const v = iData[k];
+    return Array.isArray(v) ? v.length : !!v;
+  });
+  if (hasProgress) {
+    const ok = await showConfirm(t('Quitter ? Les réponses non enregistrées seront perdues.', 'Hiala? Ho very ny valiny tsy voatahiry.'));
+    if (!ok) return;
+  }
+  go(interviewOrigin);
+}
+
+function renderStep() {
+  const s = iSteps[iCur];
+  const visible = visibleStepIndices();
+  const posInVisible = visible.indexOf(iCur);
+  const total = visible.length;
+  document.getElementById('iprogress').style.width = (total ? Math.round(posInVisible / total * 100) : 0) + '%';
+  document.getElementById('iprogress-txt').textContent = (posInVisible + 1) + ' / ' + total;
+  document.getElementById('iblock-title').textContent = s.block || activeQuestionnaire.title;
+  document.getElementById('ibtn-prev').disabled = posInVisible === 0;
+  const last = posInVisible === total - 1;
+  const nb = document.getElementById('ibtn-next');
+  nb.className = last ? 'btn btn-success' : 'btn btn-prim';
+  if (previewMode && last) {
+    nb.innerHTML = icon('eye') + ' <span>' + t("Terminer l'aperçu", 'Ajanony ny topi-maso') + '</span>';
+  } else {
+    nb.innerHTML = last
+      ? icon('save') + ' <span>' + (editingFicheId ? t('Enregistrer les modifications', 'Tehirizo ny fanovana') : t('Enregistrer', 'Tehirizo')) + '</span>'
+      : '<span>' + t('Suivant', 'Manaraka') + '</span>' +
+        '<svg class="icon icon-sm" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>';
+  }
+
+  const body = document.getElementById('ibody');
+  const cur = iData[s.field] ?? '';
+  let html = '';
+  if (previewMode) {
+    html += `<div class="preview-badge">${icon('eye', 14)} <span>${t("Mode aperçu — rien n'est enregistré", 'Topi-maso — tsy voatahiry')}</span></div>`;
+  }
+  html += `<div class="interview-q-fr">${escapeHtml(s.fr)}</div>` + (s.mg ? `<div class="interview-q-mg">${escapeHtml(s.mg)}</div>` : '');
+
+  if (s.type === 'sel') {
+    html += `<div class="interview-opts">`;
+    (s.options || []).forEach(o => {
+      const sel = cur === o.v;
+      html += `<button class="interview-opt${sel ? ' selected' : ''}" onclick="iSel('${s.field}','${escapeAttr(o.v)}')">
+        ${escapeHtml(o.fr)}${o.mg ? `<span class="opt-mg">${escapeHtml(o.mg)}</span>` : ''}</button>`;
+    });
+    html += `</div>`;
+  } else if (s.type === 'multi') {
+    const vals = Array.isArray(cur) ? cur : (cur ? String(cur).split(', ') : []);
+    const autre = iData[s.field + '_autre'] || '';
+    html += `<div class="interview-chks">`;
+    (s.options || []).forEach(o => {
+      const chk = vals.includes(o.v);
+      html += `<label class="interview-chk${chk ? ' selected' : ''}">
+        <input type="checkbox" value="${escapeAttr(o.v)}" data-field="${s.field}" ${chk ? 'checked' : ''} onchange="iMulti('${s.field}')">
+        <span>${escapeHtml(o.fr)}${o.mg ? `<br><span style="font-size:11px;color:#7c3aed;font-style:italic">${escapeHtml(o.mg)}</span>` : ''}</span>
+      </label>`;
+    });
+    html += `</div>`;
+    if (s.autre) {
+      html += `<div class="i-autre"><span style="font-size:12px;color:var(--muted);font-style:italic;white-space:nowrap">+ ${t('Autre', 'Hafa')} :</span>
+        <input type="text" value="${escapeAttr(autre)}" oninput="iData['${s.field}_autre']=this.value"></div>`;
+    }
+  } else if (s.type === 'textarea') {
+    html += `<textarea class="interview-textarea" oninput="iData['${s.field}']=this.value">${escapeHtml(cur)}</textarea>`;
+  } else if (s.type === 'txt') {
+    html += `<input type="text" style="min-height:52px;font-size:16px;padding:14px" value="${escapeAttr(cur)}" oninput="iData['${s.field}']=this.value">`;
+  } else if (s.type === 'date') {
+    html += `<input type="date" style="min-height:52px;font-size:16px;padding:14px" value="${escapeAttr(cur)}" oninput="iData['${s.field}']=this.value">`;
+  } else if (s.type === 'num') {
+    html += `<input type="number" style="min-height:52px;font-size:16px;padding:14px" value="${escapeAttr(cur)}" oninput="iData['${s.field}']=this.value">`;
+  } else if (s.type === 'scale') {
+    const min = s.scaleMin ?? 1, max = s.scaleMax ?? 5;
+    html += `<div class="interview-opts" style="flex-direction:row;flex-wrap:wrap">`;
+    for (let n = min; n <= max; n++) {
+      const sel = String(cur) === String(n);
+      html += `<button class="interview-opt${sel ? ' selected' : ''}" style="flex:1;min-width:52px;text-align:center;padding:14px 8px" onclick="iSel('${s.field}','${n}')">${n}</button>`;
+    }
+    html += `</div><div style="display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-top:6px"><span>${min}</span><span>${max}</span></div>`;
+  } else if (s.type === 'geo') {
+    const has = cur && typeof cur === 'object' && typeof cur.lat === 'number';
+    html += `<div class="card" style="background:var(--bg);border-style:dashed">
+      ${has ? `<p style="font-size:13px"><strong>${t('Position capturée', 'Toerana voaraiketra')} :</strong><br>${cur.lat.toFixed(5)}, ${cur.lng.toFixed(5)}</p>`
+            : `<p style="font-size:13px;color:var(--muted)">${t('Aucune position capturée.', 'Tsy mbola misy toerana voaraiketra.')}</p>`}
+      <button class="btn btn-prim" style="margin-top:10px" onclick="captureGeo('${s.field}')">${icon('mapPin')} <span>${t('Capturer ma position', 'Raiso ny toerana misy ahy')}</span></button>
+    </div>`;
+  } else if (s.type === 'photo') {
+    html += `<div class="card" style="background:var(--bg);border-style:dashed;text-align:center">
+      ${cur ? `<img src="${cur}" style="max-width:100%;border-radius:8px;margin-bottom:10px" alt="">` : ''}
+      <input type="file" accept="image/*" capture="environment" id="photo-input-${s.field}" class="hidden" onchange="capturePhoto('${s.field}',this)">
+      <button class="btn" onclick="document.getElementById('photo-input-${s.field}').click()">${icon('camera')} <span>${cur ? t('Reprendre la photo', 'Averao ny sary') : t('Prendre une photo', 'Maka sary')}</span></button>
+    </div>`;
+  } else if (s.type === 'consent') {
+    html += `<div class="interview-consent-box">
+      <p>${icon('shield', 18)} <strong>${t('Consentement RGPD', 'Fanekena RGPD')}</strong><br>
+      ${t('Confirme que la personne a été informée de ses droits et a donné son consentement libre et éclairé.', 'Manamarina fa nampahafantarina ny zony ilay olona ary nanome fanekena an-tsitrapo sy mazava.')}</p>
+      <label class="interview-chk${cur ? ' selected' : ''}">
+        <input type="checkbox" ${cur ? 'checked' : ''} onchange="iData['${s.field}']=this.checked">
+        <span>${t('Je confirme que le consentement a été recueilli', 'Manamarina aho fa noraisina ny fanekena')}</span></label></div>`;
+  }
+  body.innerHTML = html;
+}
+
+function iSel(field, val) { iData[field] = val; renderStep(); }
+function iMulti(field) {
+  const vals = [...document.querySelectorAll(`input[data-field="${field}"]:checked`)].map(x => x.value);
+  iData[field] = vals;
+  document.querySelectorAll(`input[data-field="${field}"]`).forEach(cb => {
+    cb.closest('.interview-chk').classList.toggle('selected', cb.checked);
+  });
+}
+function captureGeo(field) {
+  if (!navigator.geolocation) { showErr(t("La géolocalisation n'est pas disponible sur cet appareil.", "Tsy misy azo ampiasaina ny GPS amin'ity fitaovana ity.")); return; }
+  navigator.geolocation.getCurrentPosition(
+    (pos) => { iData[field] = { lat: pos.coords.latitude, lng: pos.coords.longitude }; renderStep(); },
+    (err) => { showErr(t('Impossible de récupérer la position : ', 'Tsy azo raisina ny toerana: ') + err.message); }
+  );
+}
+function capturePhoto(field, input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    const img = new Image();
+    img.onload = () => {
+      const maxW = 800;
+      const scale = Math.min(1, maxW / img.width);
+      const canvas = document.createElement('canvas');
+      canvas.width = img.width * scale;
+      canvas.height = img.height * scale;
+      canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+      iData[field] = canvas.toDataURL('image/jpeg', 0.7);
+      renderStep();
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+async function iStep(dir) {
+  const visible = visibleStepIndices();
+  const pos = visible.indexOf(iCur);
+
+  if (dir === 1 && pos === visible.length - 1) {
+    const visibleSteps = visible.map(idx => iSteps[idx]);
+    const missing = visibleSteps.filter(s => s.required && !iData[s.field] && !(s.type === 'consent' && iData[s.field] === true));
+    if (missing.length) { showErr(t('Merci de compléter : ', 'Ampio azafady: ') + missing.map(m => m.fr).join(', ')); return; }
+
+    if (previewMode) { go('tab-editeur'); return; }
+
+    const payload = {};
+    visibleSteps.forEach(s => {
+      let v = iData[s.field] ?? '';
+      if (s.type === 'multi') {
+        const arr = Array.isArray(v) ? [...v] : (v ? [v] : []);
+        const autre = (iData[s.field + '_autre'] || '').trim();
+        if (autre) arr.push(autre);
+        v = arr.join(', ');
+      } else if (s.type === 'geo' && v && typeof v === 'object') {
+        v = v.lat + ',' + v.lng;
+      }
+      payload[s.field] = v;
+    });
+
+    if (editingFicheId) {
+      try {
+        await api('/fiches/' + editingFicheId, { method: 'PUT', body: { data: payload } });
+        const savedId = editingFicheId;
+        iData = {}; editingFicheId = null;
+        go('tab-registre');
+        document.getElementById('registre-q-select').value = activeQuestionnaire._id;
+        loadFiches();
+        setTimeout(() => showOk(t('Réponse modifiée.', 'Voavaozina ny valiny.')), 200);
+      } catch (e) { showErr(e.message); }
+      return;
+    }
+
+    try {
+      if (!navigator.onLine) throw Object.assign(new Error('offline'), { isNetworkError: true });
+      await api('/questionnaires/' + activeQuestionnaire._id + '/fiches', { method: 'POST', body: { data: payload, clientId: currentClientId } });
+      iData = {}; currentClientId = null;
+      go('tab-registre');
+      document.getElementById('registre-q-select').value = activeQuestionnaire._id;
+      loadFiches();
+      setTimeout(() => showOk(t('Réponse enregistrée.', 'Voatahiry ny valiny.')), 200);
+    } catch (e) {
+      if (e.isNetworkError || !navigator.onLine) {
+        // pas de réseau : on garde la réponse en local, elle sera synchronisée automatiquement
+        try {
+          await idbSavePending({
+            clientId: currentClientId, questionnaireId: activeQuestionnaire._id,
+            title: activeQuestionnaire.title, data: payload, createdAt: Date.now()
+          });
+          iData = {}; currentClientId = null;
+          go('tab-entretien');
+          updateOfflineBanner();
+          showOk(t('Pas de connexion — réponse enregistrée hors-ligne, elle sera synchronisée automatiquement.', 'Tsy misy fifandraisana — voatahiry tao anaty solosaina ny valiny, hifandray ho azy rehefa misy internet.'));
+        } catch (idbErr) {
+          showErr(t("Impossible d'enregistrer, même hors-ligne : ", 'Tsy azo tahirizina, na tsy misy internet aza: ') + idbErr.message);
+        }
+      } else {
+        showErr(e.message);
+      }
+    }
+    return;
+  }
+
+  const newPos = pos + dir;
+  if (newPos < 0 || newPos >= visible.length) return;
+  iCur = visible[newPos];
+  renderStep();
+}
+
+// ─────────────────────────────────────────────
+// REGISTRE
+// ─────────────────────────────────────────────
+let regPage = 1, regTotal = 0, regPages = 1, regSearch = '', regSearchTimer = null;
+let currentAllFiches = []; // toutes les fiches du questionnaire actif (chargées une fois, filtrées/paginées côté client)
+
+// Charge toutes les fiches du questionnaire actif depuis le réseau (et les met en cache local),
+// ou depuis le cache si hors-ligne. Utilisé par le Registre, les Statistiques et les exports.
+async function loadFichesData() {
+  if (!activeQuestionnaire) { currentAllFiches = []; return false; }
+  try {
+    currentAllFiches = await api('/questionnaires/' + activeQuestionnaire._id + '/fiches/all');
+    idbCacheSet('fiches:' + activeQuestionnaire._id, currentAllFiches);
+    return true;
+  } catch (e) {
+    if (e.isNetworkError) {
+      const cached = await idbCacheGet('fiches:' + activeQuestionnaire._id);
+      if (cached) { currentAllFiches = cached; return true; }
+    }
+    showErr(e.message);
+    currentAllFiches = [];
+    return false;
+  }
+}
+
+function onRegistreSearch(v) {
+  regSearch = v;
+  clearTimeout(regSearchTimer);
+  // Recherche appliquée aux données déjà en mémoire : aucune requête réseau nécessaire,
+  // donc ça fonctionne aussi hors-ligne et instantanément.
+  regSearchTimer = setTimeout(() => { regPage = 1; applyRegistreFilterAndPaginate(); }, 250);
+}
+
+function applyRegistreFilterAndPaginate() {
+  let filtered = currentAllFiches;
+  if (regSearch && regSearch.trim()) {
+    const needle = regSearch.trim().toLowerCase();
+    filtered = currentAllFiches.filter(f =>
+      f.refId.toLowerCase().includes(needle) || JSON.stringify(f.data).toLowerCase().includes(needle));
+  }
+  const limit = 20;
+  regTotal = filtered.length;
+  regPages = Math.max(1, Math.ceil(regTotal / limit));
+  regPage = Math.min(Math.max(1, regPage), regPages);
+  currentFiches = filtered.slice((regPage - 1) * limit, regPage * limit);
+  renderRegistre();
+}
+function goRegistrePage(page) {
+  regPage = page;
+  applyRegistreFilterAndPaginate();
+}
+
+async function loadFiches(page) {
+  if (!activeQuestionnaire) {
+    document.getElementById('registre-body').innerHTML = '<div class="empty">' + icon('inbox', 28) + '<div>' +
+      t('Choisis un questionnaire ci-dessus.', 'Misafidiana fanontaniana eo ambony.') + '</div></div>';
+    return;
+  }
+  regPage = page || regPage || 1;
+  const ok = await loadFichesData();
+  if (ok) applyRegistreFilterAndPaginate();
+}
+
+function renderRegistre() {
+  const body = document.getElementById('registre-body');
+  if (!currentFiches.length) {
+    body.innerHTML = '<div class="empty">' + icon('inbox', 28) + '<div>' +
+      (regSearch
+        ? t('Aucune réponse ne correspond à ta recherche.', "Tsy misy valiny mifanaraka amin'ny fikarohana.")
+        : t('Aucune réponse enregistrée pour ce questionnaire.', "Mbola tsy misy valiny voatahiry amin'ity fanontaniana ity.")) + '</div></div>';
+    return;
+  }
+  const qs = [...activeQuestionnaire.questions].sort((a, b) => a.order - b.order);
+
+  let table = `<div class="card"><div class="tbl-wrap"><table><thead><tr><th>${t('Réf.', 'Laharana')}</th><th>${t('Date', 'Daty')}</th>`;
+  qs.forEach(q => table += `<th>${escapeHtml(q.fr.slice(0, 24))}</th>`);
+  table += `<th></th></tr></thead><tbody>`;
+  currentFiches.forEach(f => {
+    table += `<tr><td class="chip">${f.refId}</td><td>${new Date(f.createdAt).toLocaleDateString('fr-FR')}</td>`;
+    qs.forEach(q => {
+      const val = f.data[q.field];
+      const display = q.type === 'photo' && val ? t('[photo]', '[sary]') : String(val ?? '');
+      table += `<td>${escapeHtml(display)}</td>`;
+    });
+    table += `<td style="white-space:nowrap">
+      <button class="btn btn-sm" onclick="editFiche('${f._id}')" aria-label="Modifier">${icon('edit')}</button>
+      <button class="btn btn-sm btn-danger" onclick="deleteFiche('${f._id}')" aria-label="Supprimer">${icon('trash')}</button>
+    </td></tr>`;
+  });
+  table += `</tbody></table></div></div>`;
+
+  let cards = `<div class="reg-cards">`;
+  currentFiches.forEach(f => {
+    cards += `<div class="reg-card"><div class="reg-card-head">
+      <span class="reg-card-id">${f.refId}</span><span class="reg-card-date">${new Date(f.createdAt).toLocaleDateString('fr-FR')}</span></div>
+      <div class="reg-card-body">`;
+    qs.slice(0, 6).forEach(q => {
+      const val = f.data[q.field];
+      const display = q.type === 'photo' && val ? t('[photo]', '[sary]') : String(val ?? '—');
+      cards += `<div class="reg-card-field"><span>${escapeHtml(q.fr.slice(0, 20))}</span><strong>${escapeHtml(display)}</strong></div>`;
+    });
+    cards += `</div>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-sm" style="flex:1;justify-content:center" onclick="editFiche('${f._id}')">${icon('edit')} <span>${t('Modifier', 'Ovay')}</span></button>
+        <button class="btn btn-sm btn-danger" style="flex:1;justify-content:center" onclick="deleteFiche('${f._id}')">${icon('trash')} <span>${t('Supprimer', 'Fafao')}</span></button>
+      </div></div>`;
+  });
+  cards += `</div>`;
+
+  let pagination = '';
+  if (regPages > 1) {
+    pagination = `<div class="pagination">
+      <button class="btn btn-sm" ${regPage <= 1 ? 'disabled' : ''} onclick="goRegistrePage(${regPage - 1})" aria-label="Page précédente">${icon('chevLeft')}</button>
+      <span>${t('Page', 'Pejy')} ${regPage} / ${regPages} · ${regTotal} ${t('réponse(s)', 'valiny')}</span>
+      <button class="btn btn-sm" ${regPage >= regPages ? 'disabled' : ''} onclick="goRegistrePage(${regPage + 1})" aria-label="Page suivante">${icon('chevRight')}</button>
+    </div>`;
+  }
+
+  body.innerHTML = table + cards + pagination;
+}
+
+async function deleteFiche(id) {
+  const ok = await showConfirm(t('Supprimer cette réponse ?', 'Hofafana ity valiny ity?'));
+  if (!ok) return;
+  try {
+    await api('/fiches/' + id, { method: 'DELETE' });
+    loadFiches();
+  } catch (e) { showErr(e.message); }
+}
+
+// ─────────────────────────────────────────────
+// STATISTIQUES
+// ─────────────────────────────────────────────
+async function loadStats() {
+  if (!activeQuestionnaire) {
+    document.getElementById('stats-body').innerHTML = '<div class="empty">' + icon('inbox', 28) + '<div>' +
+      t('Choisis un questionnaire ci-dessus.', 'Misafidiana fanontaniana eo ambony.') + '</div></div>';
+    return;
+  }
+  const ok = await loadFichesData();
+  if (ok) { currentFiches = currentAllFiches; renderStats(); }
+}
+
+const CHART_COLORS = ['#4f46e5', '#0ea5e9', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#14b8a6', '#f97316', '#64748b'];
+let chartInstances = [];
+if (window.Chart) {
+  Chart.defaults.font.family = "'DM Sans', sans-serif";
+  Chart.defaults.color = '#6b7280';
+}
+
+function renderStats() {
+  chartInstances.forEach(c => c.destroy());
+  chartInstances = [];
+  const body = document.getElementById('stats-body');
+  if (!currentFiches.length) {
+    body.innerHTML = '<div class="empty">' + icon('inbox', 28) + '<div>' +
+      t('Aucune donnée à analyser pour ce questionnaire.', "Mbola tsy misy angona hodinihina amin'ity fanontaniana ity.") + '</div></div>';
+    return;
+  }
+  const qs = activeQuestionnaire.questions.filter(q => q.type === 'sel' || q.type === 'multi');
+
+  let html = `<div class="stats-grid">
+    <div class="stat-card"><div class="stat-num">${currentFiches.length}</div><div class="stat-label">${t('Réponses totales', 'Valiny rehetra')}</div></div>
+    <div class="stat-card"><div class="stat-num">${activeQuestionnaire.questions.length}</div><div class="stat-label">${t('Questions', 'Fanontaniana')}</div></div>
+    <div class="stat-card"><div class="stat-num">${qs.length}</div><div class="stat-label">${t('Questions à choix', 'Fanontaniana misafidy')}</div></div>
+  </div>`;
+
+  html += `<div class="card chart-card full">
+    <div class="card-title">${t('Réponses dans le temps', 'Valiny arakaraka ny fotoana')}</div>
+    <div class="chart-wrap"><canvas id="chart-timeline"></canvas></div>
+  </div>`;
+
+  if (!qs.length) {
+    html += `<div class="empty">${icon('inbox', 24)}<div>${t('Ajoute des questions à choix (unique ou multiple) pour voir plus de graphiques.', 'Ampio fanontaniana misafidy (tokana na maro) mba hahitana tsipika bebe kokoa.')}</div></div>`;
+  } else {
+    html += `<div class="charts-grid">`;
+    qs.forEach((q, i) => {
+      html += `<div class="card chart-card">
+        <div class="card-title">${escapeHtml(q.fr)}</div>
+        <div class="chart-wrap"><canvas id="chart-q-${i}"></canvas></div>
+      </div>`;
+    });
+    html += `</div>`;
+  }
+
+  body.innerHTML = html;
+
+  if (!window.Chart) {
+    showErr(t('Les graphiques n\'ont pas pu se charger (librairie indisponible). Vérifie ta connexion internet et recharge la page.', 'Tsy voatohy ny tsipika (rindrankajy tsy azo raisina). Jereo ny fifandraisana internet ary avereno alaina ny pejy.'));
+    return;
+  }
+
+  // Graphique temporel : nombre de réponses par jour
+  const byDate = {};
+  currentFiches.forEach(f => {
+    const d = new Date(f.createdAt);
+    const key = d.toISOString().slice(0, 10);
+    byDate[key] = (byDate[key] || 0) + 1;
+  });
+  const sortedDates = Object.keys(byDate).sort();
+  const timelineCtx = document.getElementById('chart-timeline').getContext('2d');
+  chartInstances.push(new Chart(timelineCtx, {
+    type: 'line',
+    data: {
+      labels: sortedDates.map(d => new Date(d).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' })),
+      datasets: [{
+        label: t('Réponses', 'Valiny'),
+        data: sortedDates.map(d => byDate[d]),
+        borderColor: '#4f46e5', backgroundColor: 'rgba(79,70,229,0.1)',
+        fill: true, tension: 0.3, pointRadius: 3, pointBackgroundColor: '#4f46e5'
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: { y: { beginAtZero: true, ticks: { precision: 0 } } }
+    }
+  }));
+
+  // Un graphique par question à choix : donut pour choix unique, barres horizontales pour choix multiples
+  qs.forEach((q, i) => {
+    const counts = {};
+    currentFiches.forEach(f => {
+      const raw = f.data[q.field];
+      const vals = q.type === 'multi' ? String(raw || '').split(', ').filter(Boolean) : [raw].filter(Boolean);
+      vals.forEach(v => { counts[v] = (counts[v] || 0) + 1; });
+    });
+    const labels = Object.keys(counts);
+    const values = Object.values(counts);
+    const ctx = document.getElementById('chart-q-' + i).getContext('2d');
+    if (!labels.length) return;
+
+    if (q.type === 'sel') {
+      chartInstances.push(new Chart(ctx, {
+        type: 'doughnut',
+        data: { labels, datasets: [{ data: values, backgroundColor: CHART_COLORS, borderWidth: 2, borderColor: '#fff' }] },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, padding: 12, font: { size: 11 } } } }
+        }
+      }));
+    } else {
+      chartInstances.push(new Chart(ctx, {
+        type: 'bar',
+        data: { labels, datasets: [{ data: values, backgroundColor: CHART_COLORS, borderRadius: 4 }] },
+        options: {
+          indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: { x: { beginAtZero: true, ticks: { precision: 0 } } }
+        }
+      }));
+    }
+  });
+}
+
+// ─────────────────────────────────────────────
+// EXPORT (PDF / CSV / Excel)
+// ─────────────────────────────────────────────
+async function fetchAllFichesForExport() {
+  if (!activeQuestionnaire) return [];
+  const ok = await loadFichesData();
+  return ok ? currentAllFiches : [];
+}
+
+function downloadBlob(content, filename, mime) {
+  const blob = new Blob(['\ufeff' + content], { type: mime }); // BOM : accents lisibles dans Excel
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename; a.click();
+  URL.revokeObjectURL(url);
+}
+function csvEscape(v) {
+  v = String(v ?? '');
+  return /[",\n;]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v;
+}
+
+async function exportRegistreCSV() {
+  if (!activeQuestionnaire) return;
+  try {
+    const all = await fetchAllFichesForExport();
+    if (!all.length) { showErr(t('Aucune donnée à exporter pour ce questionnaire.', "Tsy misy angona ho avoaka amin'ity fanontaniana ity.")); return; }
+    const qs = [...activeQuestionnaire.questions].sort((a, b) => a.order - b.order);
+    const headers = [t('Réf.', 'Laharana'), t('Date', 'Daty'), ...qs.map(q => q.fr)];
+    const rows = all.map(f => [f.refId, new Date(f.createdAt).toLocaleDateString('fr-FR'),
+      ...qs.map(q => q.type === 'photo' ? (f.data[q.field] ? t('[photo]', '[sary]') : '') : String(f.data[q.field] ?? ''))]);
+    const csv = [headers, ...rows].map(r => r.map(csvEscape).join(',')).join('\r\n');
+    downloadBlob(csv, slugify(activeQuestionnaire.title) + '_export.csv', 'text/csv;charset=utf-8;');
+  } catch (e) { showErr(e.message); }
+}
+
+async function exportRegistreExcel() {
+  if (!activeQuestionnaire) return;
+  if (!window.XLSX) { showErr(t('La librairie Excel n\'a pas pu être chargée (vérifie ta connexion internet).', 'Tsy voatohy ny rindrankajy Excel (jereo ny fifandraisana internet).')); return; }
+  try {
+    const all = await fetchAllFichesForExport();
+    if (!all.length) { showErr(t('Aucune donnée à exporter pour ce questionnaire.', "Tsy misy angona ho avoaka amin'ity fanontaniana ity.")); return; }
+    const qs = [...activeQuestionnaire.questions].sort((a, b) => a.order - b.order);
+    const rows = all.map(f => {
+      const row = {};
+      row[t('Réf.', 'Laharana')] = f.refId;
+      row[t('Date', 'Daty')] = new Date(f.createdAt).toLocaleDateString('fr-FR');
+      qs.forEach(q => { row[q.fr] = q.type === 'photo' ? (f.data[q.field] ? t('[photo]', '[sary]') : '') : (f.data[q.field] ?? ''); });
+      return row;
+    });
+    const ws = XLSX.utils.json_to_sheet(rows);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, t('Réponses', 'Valiny').slice(0, 31));
+    XLSX.writeFile(wb, slugify(activeQuestionnaire.title) + '_export.xlsx');
+  } catch (e) { showErr(e.message); }
+}
+
+async function exportRegistrePDF() {
+  if (!activeQuestionnaire) return;
+  if (!window.jspdf) { showErr(t('La librairie PDF n\'a pas pu être chargée (vérifie ta connexion internet).', 'Tsy voatohy ny rindrankajy PDF (jereo ny fifandraisana internet).')); return; }
+  try {
+    const all = await fetchAllFichesForExport();
+    if (!all.length) { showErr(t('Aucune donnée à exporter pour ce questionnaire.', "Tsy misy angona ho avoaka amin'ity fanontaniana ity.")); return; }
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ orientation: 'landscape' });
+    const qs = [...activeQuestionnaire.questions].sort((a, b) => a.order - b.order);
+
+    doc.setFontSize(16); doc.setTextColor(30, 30, 30);
+    doc.text(activeQuestionnaire.title, 14, 16);
+    doc.setFontSize(9); doc.setTextColor(120);
+    doc.text(t('Exporté le ', "Navoaka tamin'ny ") + new Date().toLocaleDateString('fr-FR') + '  —  ' +
+      all.length + ' ' + t('réponse(s)', 'valiny'), 14, 22);
+
+    const head = [[t('Réf.', 'Laharana'), t('Date', 'Daty'), ...qs.map(q => q.fr)]];
+    const bodyRows = all.map(f => [
+      f.refId, new Date(f.createdAt).toLocaleDateString('fr-FR'),
+      ...qs.map(q => q.type === 'photo' ? (f.data[q.field] ? t('[photo]', '[sary]') : '') : String(f.data[q.field] ?? ''))
+    ]);
+
+    doc.autoTable({
+      head, body: bodyRows, startY: 28,
+      styles: { fontSize: 8, cellPadding: 3, overflow: 'linebreak' },
+      headStyles: { fillColor: [79, 70, 229], textColor: 255, fontStyle: 'bold' },
+      alternateRowStyles: { fillColor: [245, 245, 250] },
+      margin: { left: 10, right: 10 }
+    });
+
+    doc.save(slugify(activeQuestionnaire.title) + '_registre.pdf');
+  } catch (e) { showErr(e.message); }
+}
+
+function exportStatsPDF() {
+  if (!activeQuestionnaire || !currentFiches.length) {
+    showErr(t('Aucune donnée à exporter pour ce questionnaire.', "Tsy misy angona ho avoaka amin'ity fanontaniana ity."));
+    return;
+  }
+  if (!window.jspdf) { showErr(t('La librairie PDF n\'a pas pu être chargée (vérifie ta connexion internet).', 'Tsy voatohy ny rindrankajy PDF (jereo ny fifandraisana internet).')); return; }
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+  let y = 18;
+
+  doc.setFontSize(16); doc.setTextColor(30, 30, 30);
+  doc.text(t('Statistiques — ', 'Statistika — ') + activeQuestionnaire.title, 14, y);
+  y += 6;
+  doc.setFontSize(9); doc.setTextColor(120);
+  doc.text(t('Exporté le ', "Navoaka tamin'ny ") + new Date().toLocaleDateString('fr-FR') + '  —  ' +
+    currentFiches.length + ' ' + t('réponse(s)', 'valiny'), 14, y);
+  y += 10;
+
+  chartInstances.forEach((chart) => {
+    const canvas = chart.canvas;
+    const imgData = canvas.toDataURL('image/png', 1.0);
+    const pageWidth = doc.internal.pageSize.getWidth() - 28;
+    const imgHeight = (canvas.height / canvas.width) * pageWidth;
+    if (y + imgHeight > doc.internal.pageSize.getHeight() - 14) { doc.addPage(); y = 18; }
+    doc.addImage(imgData, 'PNG', 14, y, pageWidth, imgHeight);
+    y += imgHeight + 10;
+  });
+
+  doc.save(slugify(activeQuestionnaire.title) + '_statistiques.pdf');
+}
+
+function slugify(str) {
+  return String(str).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '') || 'tahiry';
+}
+
+// ─────────────────────────────────────────────
+// UTILITAIRES
+// ─────────────────────────────────────────────
+function escapeHtml(str) {
+  return String(str ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+function escapeAttr(str) { return escapeHtml(str); }
+
+// ─────────────────────────────────────────────
+// INSTALLATION DE L'APPLICATION (PWA)
+// ─────────────────────────────────────────────
+let deferredInstallPrompt = null;
+
+function isIosDevice() {
+  return /iphone|ipad|ipod/i.test(navigator.userAgent) && !window.MSStream;
+}
+function isStandaloneDisplay() {
+  return window.matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+}
+
+// Chrome / Edge / Android : le navigateur propose l'installation via cet évènement.
+// On l'intercepte pour afficher notre propre bouton plutôt que la mini-barre du navigateur.
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredInstallPrompt = e;
+  if (!isStandaloneDisplay()) document.getElementById('install-btn').classList.remove('hidden');
+});
+
+async function triggerInstall() {
+  if (!deferredInstallPrompt) return;
+  deferredInstallPrompt.prompt();
+  const choice = await deferredInstallPrompt.userChoice;
+  deferredInstallPrompt = null;
+  document.getElementById('install-btn').classList.add('hidden');
+  if (choice.outcome === 'accepted') showOk(t('Application installée.', 'Voapetraka ny rindrankajy.'));
+}
+
+window.addEventListener('appinstalled', () => {
+  deferredInstallPrompt = null;
+  document.getElementById('install-btn').classList.add('hidden');
+  document.getElementById('install-btn-ios').classList.add('hidden');
+});
+
+// iOS Safari ne déclenche jamais beforeinstallprompt : la seule voie est le menu
+// Partager > "Sur l'écran d'accueil". On affiche donc un bouton qui explique la marche à suivre.
+function showIosInstallInstructions() {
+  showInfo(
+    t(
+      "Sur iPhone/iPad : appuie sur le bouton Partager de Safari (le carré avec une flèche), puis choisis \"Sur l'écran d'accueil\".",
+      "Amin'ny iPhone/iPad: tsindrio ny bokotra Partager an'i Safari (efajoro misy zana-tsipika), avy eo safidio \"Sur l'écran d'accueil\"."
+    ),
+    9000
+  );
+}
+
+function initInstallButton() {
+  if (isStandaloneDisplay()) return; // déjà installée / déjà en mode app : rien à proposer
+  if (isIosDevice()) document.getElementById('install-btn-ios').classList.remove('hidden');
+}
+
+// Service worker : rend l'app installable et permet de la recharger hors-ligne.
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js').catch((err) => {
+      console.warn('Service worker non enregistré :', err.message);
+    });
+  });
+}
+
+// ─────────────────────────────────────────────
+// INIT
+// ─────────────────────────────────────────────
+checkResetTokenInUrl();
+checkSession();
+updateOfflineBanner();
+initInstallButton();
+</script>
+</body>
+</html>
